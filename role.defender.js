@@ -13,3 +13,6 @@ roleDefender = {
 };
 
 module.exports = roleDefender;
+
+// kiting notes:
+//- if hostile creep isNear() look around 9x9 area for a free spot that has no enemies near it and walk there then shoot

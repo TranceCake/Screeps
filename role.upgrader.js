@@ -1,3 +1,5 @@
+var scheduler = require('scheduler');
+
 var roleUpgrader = {
 
     /** @param {Creep} creep **/
@@ -10,8 +12,7 @@ var roleUpgrader = {
 
         // energy at full capacity, release spot and start working
         else if(!creep.memory.working && creep.carry.energy == creep.carryCapacity) {
-            Memory.spots++;
-            creep.memory.hasSpot = false;
+            //scheduler.release(creep);
             creep.memory.working = true;
         }
 
@@ -23,28 +24,19 @@ var roleUpgrader = {
                 result = creep.upgradeController(creep.room.controller);
             }
         } else {
-            
-            // try to get a spot
-            if(Memory.spots > 0 && !creep.memory.hasSpot) {
-                Memory.spots--;
-                creep.memory.hasSpot = true;
-            }
-            
-            // if spot available: go there, if not: wait in line
-            if(creep.memory.hasSpot) {
-                var source = creep.pos.findClosestByPath(FIND_SOURCES);
-                
-                if(creep.harvest(source) === ERR_NOT_IN_RANGE) {
-                    result = creep.moveTo(source);
-                } else {
-                    result = creep.harvest(source);
-                }
-            } else {
-                result = 'queueing';
-            }
+            var source = creep.pos.findClosestByPath(FIND_SOURCES);
+            collect(creep, source);
         }
         creep.memory.result = result;
 	}
 };
 
 module.exports = roleUpgrader;
+
+function collect(creep, target) {
+    if(!creep.pos.isNearTo(target)) {
+        result = creep.moveTo(target);
+    } else {
+        result = creep.harvest(target);
+    }
+}

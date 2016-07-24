@@ -1,4 +1,4 @@
-var roleUpgrader = require('role.upgrader');
+var roleRepairer = require('role.repairer');
 var scheduler = require('scheduler');
 
 var roleBuilder = {
@@ -8,61 +8,67 @@ var roleBuilder = {
         var result;
         
         // used all energy, stop working
-        if(creep.memory.working && creep.carry.energy == 0)
+        if(creep.memory.working && creep.carry.energy == 0) {
             creep.memory.working = false;
+        }
 
         // energy at full capacity, release spot and start working
         else if(!creep.memory.working && creep.carry.energy == creep.carryCapacity) {
-            scheduler.release(creep);
             creep.memory.working = true;
         }
         
 
         // instructions & harvesting
 	    if(creep.memory.working) {
-	        var structure = creep.pos.findClosestByPath(FIND_STRUCTURES, {
-                filter: (o) => o.hits < o.hitsMax && !(o.structureType === STRUCTURE_WALL || o.structureType === STRUCTURE_RAMPART)
-            });
-            
+	        if(creep.pos.isNearTo(creep.pos.findClosestByRange(FIND_SOURCES))) {
+	            var direction = creep.pos.getDirectionTo(creep.pos.findClosestByRange(FIND_SOURCES));
+	            if(direction < 5) {
+	                //console.log(direction + ' ' + (direction + 4));
+	                creep.move(direction + 4);
+	            } else {
+	                //console.log(direction + ' ' + (direction - 4));
+	                creep.move(direction - 4);
+	            }
+	        }
+	        
             var site = creep.pos.findClosestByPath(FIND_CONSTRUCTION_SITES);
             
-            if(structure !== null) {
-                if(creep.repair(structure) === ERR_NOT_IN_RANGE) {
-                    result = creep.moveTo(structure);
-                } else {
-                    result = creep.repair(structure);
-                }
-            } else if(site != null) {
-                if(creep.build(site) === ERR_NOT_IN_RANGE) {
-                    result = creep.moveTo(site);
-                } else {
-                    result = creep.build(site);
-                }
+            if(site !== null) {
+                work(creep, site);
             } else {
-                roleUpgrader.run(creep);
+                roleRepairer.run(creep);
             }
+            
         } else {
-            
-            // try to get a spot
-            if(!creep.memory.hasSpot) {
-                var res = scheduler.request(creep);
-                if(!res) {
-                    result = 'queueing';
-                }
-            }
-            
-            if(creep.memory.hasSpot) {
-                var source = creep.pos.findClosestByPath(FIND_SOURCES);
-                
-                if(creep.harvest(source) === ERR_NOT_IN_RANGE) {
-                    result = creep.moveTo(source);
-                } else {
-                    result = creep.harvest(source);
-                }
-            }
+            var source = creep.pos.findClosestByRange(FIND_SOURCES);
+            collect(creep, source);
         }
         creep.memory.result = result;
 	}
 };
 
 module.exports = roleBuilder;
+
+function work(creep, target) {
+    if(!creep.pos.isNearTo(target)) {
+        result = creep.moveTo(target);
+    } else {
+        result = creep.build(target);
+    }
+}
+
+function collect(creep, target) {
+    if(!creep.pos.isNearTo(target)) {
+        result = creep.moveTo(target);
+    } else {
+        result = creep.harvest(target);
+    }
+}
+
+
+
+
+
+
+
+
