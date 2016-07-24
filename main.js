@@ -5,6 +5,12 @@ var roleRepairer = require('role.repairer');
 var roleDefender = require('role.defender');
 var tower = require('tower');
 
+var minHarvesters;
+var minDefenders;
+var minUpgraders;
+var minBuilders;
+var minRepairers;
+
 module.exports.loop = function () {
     
     // garbage collection
@@ -46,30 +52,39 @@ module.exports.loop = function () {
     //==== Auto spawning section ====\\
     
     // determining the number and type op creeps needed
-    var minHarvesters = 4;
-    var numHarvesters = getTotalRolePoints('harvester');
+    numMiningSites = findMiningSites(Game.spawns.Spawn1.room);
     
-    var minUpgraders = 2;
-    var numUpgraders = getTotalRolePoints('upgrader');
-    
-    var minBuilders = 3;
-    var numBuilders = getTotalRolePoints('builder');
+    // more than 5 mining sites is luxurious, so you can speed up production a bit
+    if(numMiningSites > 5) {
+        minHarvesters = 6;
+        minUpgraders = 3;
+        minBuilders = 4;
+    } else {
+        minHarvesters = 4;
+        minUpgraders = 2;
+        minBuilders = 3;
+    }
     
     // the tower also repairs a bit so less repairers needed
     if(towers.length > 0) {
-        var minRepairers = 1;
+        minRepairers = 1;
     } else {
-        var minRepairers = 2;
+        minRepairers = 2;
     }
-    var numRepairers = getTotalRolePoints('repairer');
     
-    // if there are hostile creeps in the room try outmatching their numbers by spaning more defenders
+    // if there are hostile creeps in the room try outmatching their numbers by spawning more defenders
     if(Game.spawns.Spawn1.room.find(FIND_HOSTILE_CREEPS).length > 0) {
-        var minDefenders = Game.spawns.Spawn1.room.find(FIND_HOSTILE_CREEPS).length + 2;
+        minDefenders = Game.spawns.Spawn1.room.find(FIND_HOSTILE_CREEPS).length + 2;
     } else {
-        var minDefenders = 2;
+        minDefenders = 2;
     }
+    
+    // getting current creep load on the room
+    var numHarvesters = getTotalRolePoints('harvester');
     var numDefenders = getTotalRolePoints('defender');
+    var numUpgraders = getTotalRolePoints('upgrader');
+    var numBuilders = getTotalRolePoints('builder');
+    var numRepairers = getTotalRolePoints('repairer');
     
     // calculating max energy capacity and current reserves
     var capacity = Game.spawns.Spawn1.room.energyCapacityAvailable;
@@ -90,7 +105,7 @@ module.exports.loop = function () {
         spawn('builder', capacity);
     } else if(numRepairers < minRepairers) {
         spawn('repairer', capacity);
-    } 
+    }
 }
 
 // spawn a custom creep, based on the max capacity of the room at the time
@@ -128,11 +143,11 @@ function spawn(role, capacity) {
         
     if(!(name < 0)) {
         console.log('// spawned new ' + tier + ' ' + role + ': ' + name);
-        console.log('| # Harvesters: ' + roleFilter('harvester').length);
-        console.log('| # Defenders: ' + roleFilter('defender').length);
-        console.log('| # Upgraders: ' + roleFilter('upgrader').length);
-        console.log('| # Builders: ' + roleFilter('builder').length);
-        console.log('| # Repairers: ' + roleFilter('repairer').length);
+        console.log('| # Harvesters: ' + roleFilter('harvester').length + '/' + minHarvesters);
+        console.log('| # Defenders: ' + roleFilter('defender').length + '/' + minDefenders);
+        console.log('| # Upgraders: ' + roleFilter('upgrader').length + '/' + minUpgraders);
+        console.log('| # Builders: ' + roleFilter('builder').length + '/' + minBuilders);
+        console.log('| # Repairers: ' + roleFilter('repairer').length + '/' + minRepairers);
         console.log('| # Creeps total: ' + (roleFilter('harvester').length + roleFilter('upgrader').length + roleFilter('builder').length + roleFilter('defender').length + roleFilter('repairer').length));
     }   
 }
@@ -154,18 +169,18 @@ function findMiningSites(roomToSearch) {
     var sources = roomToSearch.find(FIND_SOURCES);
     var sites = [];
     
-    for(i = 0; i < sources.length; i++) {
-        var x = sources[i].pos.x;
-        var y = sources[i].pos.y;
+    for(source of sources) {
+        var x = source.pos.x;
+        var y = source.pos.y;
         
         var adjacent = roomToSearch.lookForAtArea(LOOK_TERRAIN, (y - 1), (x - 1), (y + 1), (x + 1), true);
         var siteArray = _.filter(adjacent, (s) => s.terrain === 'plain' || s.terrain === 'swamp');
         
-        for(j = 0; j < siteArray.length; j++) {
-            sites.push(new RoomPosition(siteArray[j].x, siteArray[j].y, roomToSearch.name));
+        for(site of siteArray) {
+            sites.push(new RoomPosition(site.x, site.y, roomToSearch.name));
         }
     }
-    Memory.sites = sites;
+    return sites.length;
 }
 
 
