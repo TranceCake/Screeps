@@ -74,7 +74,7 @@ module.exports.loop = function () {
     
     if(numHarvesters < minHarvesters) {
         if(numHarvesters == 0 && available < capacity) {
-            spawn('harvester', capacity);
+            spawn('harvester', available);
         } else {
             spawn('harvester', capacity);
         }

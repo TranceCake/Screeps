@@ -30,7 +30,8 @@ var roleHarvester = {
                 roleUpgrader.run(creep);
             }
         } else {
-            var target = creep.pos.findClosestByRange(FIND_DROPPED_ENERGY);
+            //var target = creep.pos.findClosestByRange(FIND_DROPPED_ENERGY);
+            var target = null;
             
             if(target !== null) {
                 collect(creep, target);

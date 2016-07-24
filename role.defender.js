@@ -2,9 +2,9 @@ roleDefender = {
     run: function(creep) {
         var result;
         
-        hostile = creep.pos.findClosestByPath(FIND_HOSTILE_CREEPS);
+        hostile = creep.room.find(FIND_HOSTILE_CREEPS)[0];
         if(creep.attack(hostile) === ERR_NOT_IN_RANGE) {
-            result = creep.moveTo(hostile);
+            result = creep.moveTo(creep.room.getDirectionTo(hostile));
         } else {
             result = creep.attack(hostile);
         }
