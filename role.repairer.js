@@ -28,16 +28,15 @@ var roleRepairer = {
                     structure = s;
                 }
             }
-            //console.log(structure, structure.hits / structure.hitsMax);
             
-            if(structure !== null) {
-                work(creep, structure);
+            if(structure !== undefined) {
+                result = work(creep, structure);
             } else {
                 roleUpgrader.run(creep);
             }
         } else {
             var source = creep.pos.findClosestByPath(FIND_SOURCES);
-            collect(creep, source);
+            result = collect(creep, source);
         }
         creep.memory.result = result;
 	}
@@ -47,16 +46,16 @@ module.exports = roleRepairer;
 
 function work(creep, target) {
     if(creep.repair(target) === ERR_NOT_IN_RANGE) {
-        result = creep.moveTo(target);
+        return creep.moveTo(target);
     } else {
-        result = creep.repair(target);
+        return creep.repair(target);
     }
 }
 
 function collect(creep, target) {
     if(!creep.pos.isNearTo(target)) {
-        result = creep.moveTo(target);
+        return creep.moveTo(target);
     } else {
-        result = creep.harvest(target);
+        return creep.harvest(target);
     }
 }

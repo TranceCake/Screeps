@@ -12,7 +12,7 @@ var roleBuilder = {
             creep.memory.working = false;
         }
 
-        // energy at full capacity, release spot and start working
+        // energy at full capacity, start working
         else if(!creep.memory.working && creep.carry.energy == creep.carryCapacity) {
             creep.memory.working = true;
         }
@@ -31,17 +31,22 @@ var roleBuilder = {
 	            }
 	        }
 	        
-            var site = creep.pos.findClosestByPath(FIND_CONSTRUCTION_SITES);
+            var sites = creep.room.find(FIND_CONSTRUCTION_SITES);
+            var extensionSites = _.filter(sites, (s) => s.structureType === STRUCTURE_EXTENSION);
             
-            if(site !== null) {
-                work(creep, site);
+            if(extensionSites.length > 0) {
+                site = creep.pos.findClosestByPath(extensionSites);
+                result = work(creep, site);
+            } else if(sites.length > 0) {
+                site = creep.pos.findClosestByPath(sites);
+                result = work(creep, site);
             } else {
                 roleRepairer.run(creep);
             }
             
         } else {
             var source = creep.pos.findClosestByRange(FIND_SOURCES);
-            collect(creep, source);
+            result = collect(creep, source);
         }
         creep.memory.result = result;
 	}
@@ -50,18 +55,18 @@ var roleBuilder = {
 module.exports = roleBuilder;
 
 function work(creep, target) {
-    if(!creep.pos.isNearTo(target)) {
-        result = creep.moveTo(target);
+    if(creep.build(target) === ERR_NOT_IN_RANGE) {
+        return creep.moveTo(target);
     } else {
-        result = creep.build(target);
+        return creep.build(target);
     }
 }
 
 function collect(creep, target) {
     if(!creep.pos.isNearTo(target)) {
-        result = creep.moveTo(target);
+        return creep.moveTo(target);
     } else {
-        result = creep.harvest(target);
+        return creep.harvest(target);
     }
 }
 

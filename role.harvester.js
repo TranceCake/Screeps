@@ -25,19 +25,23 @@ var roleHarvester = {
 	        });
             
             if(energyStorage !== null) {
-                work(creep, energyStorage);
+                result = work(creep, energyStorage);
             } else {
                 roleUpgrader.run(creep);
             }
         } else {
-            //var target = creep.pos.findClosestByRange(FIND_DROPPED_ENERGY);
-            var target = null;
+            var target = creep.pos.findClosestByRange(FIND_DROPPED_ENERGY);
             
-            if(target !== null) {
-                collect(creep, target);
+            if(target !== null && creep.pos.getRangeTo(target) < 10) {
+                result = collect(creep, target);
             } else {
-                var source = creep.pos.findClosestByPath(FIND_SOURCES);
-                collect(creep, source);
+                var sources = creep.room.find(FIND_SOURCES, {
+                    filter: (s) => s.energy > 0
+                });
+                var source = creep.pos.findClosestByPath(sources);
+                
+                if(source !== null)
+                    result = collect(creep, source);
             }
         }
         creep.memory.result = result;
@@ -48,20 +52,20 @@ module.exports = roleHarvester;
 
 function work(creep, target) {
     if(!creep.pos.isNearTo(target)) {
-        result = creep.moveTo(target);
+        return creep.moveTo(target);
     } else {
-        result = creep.transfer(target, RESOURCE_ENERGY);
+        return creep.transfer(target, RESOURCE_ENERGY);
     }
 }
 
 function collect(creep, target) {
     if(!creep.pos.isNearTo(target)) {
-        result = creep.moveTo(target);
+        return creep.moveTo(target);
     } else {
         if(target.energyCapacity !== undefined) {
-            result = creep.harvest(target);
+            return creep.harvest(target);
         } else {
-            result = creep.pickup(target);
+            return creep.pickup(target);
         }
     } 
 }

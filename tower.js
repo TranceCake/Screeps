@@ -80,7 +80,8 @@ tower = {
                                         target = s;
                                     }
                                 }
-                                tower.repair(target);
+                                if(tower.energy > (tower.energyCapacity / 3))
+                                    tower.repair(target);
                             }
                         }
                     }
