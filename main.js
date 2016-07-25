@@ -51,7 +51,7 @@ module.exports.loop = function () {
     
     //==== Auto spawning section ====\\
     
-    // determining the number and type op creeps needed
+    // determining the number and type of creeps needed
     numMiningSites = findMiningSites(Game.spawns.Spawn1.room);
     
     // more than 5 mining sites is luxurious, so you can speed up production a bit

@@ -1,4 +1,8 @@
 var scheduler = {
+    getState: function() {
+        
+    },
+    
     request: function(creep) {
         var sites = Memory.sites;
         for(var site in sites) {
