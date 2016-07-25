@@ -117,7 +117,7 @@ function spawn(role, capacity) {
         tier = 'basic';
         
         if(role === 'defender') {
-            parts = [RANGED_ATTACK, MOVE, MOVE];
+            parts = [ATTACK, ATTACK, MOVE, MOVE];
         } else {
             parts = [WORK, WORK, CARRY, MOVE];
         }
@@ -125,7 +125,7 @@ function spawn(role, capacity) {
         tier = 'advanced';
         
         if(role === 'defender') {
-            parts = [RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, MOVE, MOVE];
+            parts = [ATTACK, ATTACK, ATTACK, TOUGH, MOVE, MOVE, MOVE, MOVE];
         } else {
             parts = [WORK, WORK, WORK, CARRY, CARRY, MOVE, MOVE, MOVE];
         }
@@ -133,9 +133,9 @@ function spawn(role, capacity) {
         tier = 'elite';
         
         if(role === 'defender') {
-            parts = [RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, MOVE, MOVE, MOVE];
+            parts = [ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, TOUGH, TOUGH, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
         } else {
-            parts = [WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE];
+            parts = [WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE];
         }
     }
     

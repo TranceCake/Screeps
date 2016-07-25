@@ -1,4 +1,4 @@
-var roleRepairer = require('role.repairer');
+var roleUpgrader = require('role.upgrader');
 var scheduler = require('scheduler');
 
 var roleBuilder = {
@@ -45,7 +45,7 @@ var roleBuilder = {
                 site = creep.pos.findClosestByPath(sites);
                 result = work(creep, site);
             } else {
-                roleRepairer.run(creep);
+                roleUpgrader.run(creep);
             }
             
         } else {

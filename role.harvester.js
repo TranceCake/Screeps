@@ -57,7 +57,7 @@ var roleHarvester = {
 module.exports = roleHarvester;
 
 function work(creep, target) {
-    if(!creep.pos.isNearTo(target)) {
+    if(creep.transfer(target, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
         return creep.moveTo(target);
     } else {
         return creep.transfer(target, RESOURCE_ENERGY);

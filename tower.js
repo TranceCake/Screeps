@@ -66,7 +66,9 @@ tower = {
                             tower.heal(target);
                         } else {
                             var damagedStructures = tower.room.find(FIND_STRUCTURES, {
-                                filter: (s) => (s.structureType === STRUCTURE_RAMPART) || (s.hits / s.hitsMax < 0.33 && s.structureType !== STRUCTURE_WALL) || (s.structureType === STRUCTURE_WALL && s.hits < 2000000)
+                                filter: (s) => (s.structureType === STRUCTURE_RAMPART) 
+                                || (s.hits / s.hitsMax < 0.33 && s.structureType !== STRUCTURE_WALL) 
+                                || (s.structureType === STRUCTURE_WALL && s.hits < tower.room.find(FIND_MY_STRUCTURES, { filter: (s) => s.structureType === STRUCTURE_RAMPART })[0].hitsMax)
                             });
                             
                             //console.log('structures');
