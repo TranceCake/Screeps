@@ -35,18 +35,16 @@ roleDefender = {
                 if(hostileStructures.length > 0) {
                     var target = creep.pos.findClosestByPath(hostileStructures);
                     result = defend(creep, target);
+                } else {
+                    // var flag = creep.room.find(FIND_FLAGS, {
+                    //     filter: (f) => f.name === 'Congregate'
+                    // });
+                    //console.log(flag.pos);
+                    
+                    if(!creep.pos.isNearTo(47,16)) {
+                        result = creep.moveTo(47,16);
+                    }
                 }
-                
-                var closestSpawn = creep.pos.findClosestByRange(FIND_MY_SPAWNS);
-                if(creep.pos.isNearTo(closestSpawn)) {
-                    var desiredPos = new RoomPosition(creep.pos.x, creep.pos.y - 1, creep.room.name);
-    	            var blocked = desiredPos.lookFor(LOOK_CREEPS);
-    	            if(blocked.length > 0) {
-    	                creep.move(8);
-    	            } else {
-    	                creep.move(1);
-    	            }
-    	        }
             }
         }
         creep.memory.result = result;
@@ -57,7 +55,8 @@ module.exports = roleDefender;
 
 function defend(creep, hostile) {
     if(creep.attack(hostile) === ERR_NOT_IN_RANGE) {
-        return creep.move(creep.room.getDirectionTo(hostile));
+        return creep.moveTo(hostile);
+        //return creep.move(creep.room.getDirectionTo(hostile));
     } else {
         return creep.attack(hostile);
     }

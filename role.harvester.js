@@ -20,12 +20,17 @@ var roleHarvester = {
 
         // instructions & harvesting
 	    if(creep.memory.working) {
-	        var energyStorage = creep.pos.findClosestByRange(FIND_STRUCTURES, {
+	        var energyStorages = creep.room.find(FIND_STRUCTURES, {
 	            filter: (o) => o.energy < o.energyCapacity
 	        });
             
-            if(energyStorage !== null) {
-                result = work(creep, energyStorage);
+            if(energyStorages.length > 0) {
+                var priorityStorages = _.filter(energyStorages, (s) => s.structureType === STRUCTURE_SPAWN || s.structureType === STRUCTURE_EXTENSION);
+                if(priorityStorages.length > 0) {
+                    result = work(creep, creep.pos.findClosestByPath(priorityStorages));
+                } else {
+                    result = work(creep, creep.pos.findClosestByPath(energyStorages));
+                }
             } else {
                 roleUpgrader.run(creep);
             }
