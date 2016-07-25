@@ -24,8 +24,14 @@ var roleUpgrader = {
                 result = creep.upgradeController(creep.room.controller);
             }
         } else {
-            var source = creep.pos.findClosestByPath(FIND_SOURCES);
-            collect(creep, source);
+            var sources = creep.room.find(FIND_SOURCES, {
+                filter: (s) => s.energy > 0
+            });
+            
+            var source = creep.pos.findClosestByPath(sources);
+            
+            if(source !== null)
+                result = collect(creep, source);
         }
         creep.memory.result = result;
 	}
@@ -35,8 +41,8 @@ module.exports = roleUpgrader;
 
 function collect(creep, target) {
     if(!creep.pos.isNearTo(target)) {
-        result = creep.moveTo(target);
+        return creep.moveTo(target);
     } else {
-        result = creep.harvest(target);
+        return creep.harvest(target);
     }
 }

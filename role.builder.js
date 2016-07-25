@@ -32,10 +32,14 @@ var roleBuilder = {
 	        }
 	        
             var sites = creep.room.find(FIND_CONSTRUCTION_SITES);
-            var extensionSites = _.filter(sites, (s) => s.structureType === STRUCTURE_EXTENSION);
+            var prioritySites = _.filter(sites, (s) => s.structureType === STRUCTURE_RAMPART || s.structureType === STRUCTURE_WALL);
+            var topPrioritySites = _.filter(sites, (s) => s.structureType === STRUCTURE_EXTENSION || s.structureType === STRUCTURE_TOWER);
             
-            if(extensionSites.length > 0) {
-                site = creep.pos.findClosestByPath(extensionSites);
+            if(topPrioritySites.length > 0) {
+                site = creep.pos.findClosestByPath(topPrioritySites);
+                result = work(creep, site);
+            } else if(prioritySites.length > 0) {
+                site = creep.pos.findClosestByPath(prioritySites);
                 result = work(creep, site);
             } else if(sites.length > 0) {
                 site = creep.pos.findClosestByPath(sites);
@@ -45,8 +49,14 @@ var roleBuilder = {
             }
             
         } else {
-            var source = creep.pos.findClosestByRange(FIND_SOURCES);
-            result = collect(creep, source);
+            var sources = creep.room.find(FIND_SOURCES, {
+                filter: (s) => s.energy > 0
+            });
+            
+            var source = creep.pos.findClosestByPath(sources);
+            
+            if(source !== null)
+                result = collect(creep, source);
         }
         creep.memory.result = result;
 	}

@@ -143,11 +143,11 @@ function spawn(role, capacity) {
         
     if(!(name < 0)) {
         console.log('// spawned new ' + tier + ' ' + role + ': ' + name);
-        console.log('| # Harvesters: ' + roleFilter('harvester').length + '/' + minHarvesters);
-        console.log('| # Defenders: ' + roleFilter('defender').length + '/' + minDefenders);
-        console.log('| # Upgraders: ' + roleFilter('upgrader').length + '/' + minUpgraders);
-        console.log('| # Builders: ' + roleFilter('builder').length + '/' + minBuilders);
-        console.log('| # Repairers: ' + roleFilter('repairer').length + '/' + minRepairers);
+        console.log('| # Harvesters: ' + roleFilter('harvester').length + ' - '  + getTotalRolePoints('harvester') + '/' + minHarvesters);
+        console.log('| # Defenders: ' + roleFilter('defender').length + ' - '  + getTotalRolePoints('defender') + '/' + minDefenders);
+        console.log('| # Upgraders: ' + roleFilter('upgrader').length + ' - ' + getTotalRolePoints('upgrader') + '/' + minUpgraders);
+        console.log('| # Builders: ' + roleFilter('builder').length + ' - '  + getTotalRolePoints('builder') + '/' + minBuilders);
+        console.log('| # Repairers: ' + roleFilter('repairer').length + ' - '  + getTotalRolePoints('repairer') + '/' + minRepairers);
         console.log('| # Creeps total: ' + (roleFilter('harvester').length + roleFilter('upgrader').length + roleFilter('builder').length + roleFilter('defender').length + roleFilter('repairer').length));
     }   
 }

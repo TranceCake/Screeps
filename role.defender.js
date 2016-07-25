@@ -10,7 +10,7 @@ roleDefender = {
         
         if(hostileAttackCreeps.length > 0) {
             var target = creep.pos.findClosestByPath(hostileAttackCreeps);
-            result = creep.defend(creep, target);
+            result = defend(creep, target);
         } else {
             var hostileCreeps = creep.room.find(FIND_HOSTILE_CREEPS);
             
@@ -19,7 +19,7 @@ roleDefender = {
             if(hostileCreeps.length > 0) {
                 var target = creep.pos.findClosestByPath(hostileCreeps);
                 
-                result = creep.defend(creep, target);
+                result = defend(creep, target);
             } else {
                 var hostileStructures = creep.room.find(FIND_HOSTILE_STRUCTURES);
                 var hostileConstructionSites = creep.room.find(FIND_HOSTILE_CONSTRUCTION_SITES);
@@ -34,8 +34,19 @@ roleDefender = {
                 
                 if(hostileStructures.length > 0) {
                     var target = creep.pos.findClosestByPath(hostileStructures);
-                    creep.defend(creep, target);
+                    result = defend(creep, target);
                 }
+                
+                var closestSpawn = creep.pos.findClosestByRange(FIND_MY_SPAWNS);
+                if(creep.pos.isNearTo(closestSpawn)) {
+                    var desiredPos = new RoomPosition(creep.pos.x, creep.pos.y - 1, creep.room.name);
+    	            var blocked = desiredPos.lookFor(LOOK_CREEPS);
+    	            if(blocked.length > 0) {
+    	                creep.move(8);
+    	            } else {
+    	                creep.move(1);
+    	            }
+    	        }
             }
         }
         creep.memory.result = result;

@@ -65,14 +65,13 @@ tower = {
                             }
                             tower.heal(target);
                         } else {
-                            var damagedStructures = tower.room.find(FIND_MY_STRUCTURES, {
-                                filter: (s) => s.structureType === STRUCTURE_RAMPART || (s.hits / s.hitsMax < 0.3 && s.structureType !== STRUCTURE_WALL)
+                            var damagedStructures = tower.room.find(FIND_STRUCTURES, {
+                                filter: (s) => (s.structureType === STRUCTURE_RAMPART) || (s.hits / s.hitsMax < 0.33 && s.structureType !== STRUCTURE_WALL) || (s.structureType === STRUCTURE_WALL && s.hits < 2000000)
                             });
                             
                             //console.log('structures');
                             
                             if(damagedStructures.length > 0) {
-                                //console.log('test');
                                 var target = damagedStructures[0];
                                 
                                 for(s of damagedStructures) {
@@ -80,7 +79,7 @@ tower = {
                                         target = s;
                                     }
                                 }
-                                if(tower.energy > (tower.energyCapacity / 3))
+                                if(tower.energy > (tower.energyCapacity * 0.66))
                                     tower.repair(target);
                             }
                         }

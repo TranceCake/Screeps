@@ -38,6 +38,7 @@ var roleHarvester = {
                 var sources = creep.room.find(FIND_SOURCES, {
                     filter: (s) => s.energy > 0
                 });
+                
                 var source = creep.pos.findClosestByPath(sources);
                 
                 if(source !== null)
