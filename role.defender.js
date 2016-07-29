@@ -1,4 +1,4 @@
-roleDefender = {
+var roleDefender = {
     run: function(creep) {
         var result;
         
@@ -41,13 +41,38 @@ roleDefender = {
                     // });
                     //console.log(flag.pos);
                     
-                    if(!creep.pos.isNearTo(47,16)) {
-                        result = creep.moveTo(47,16);
+                    if(!creep.pos.isNearTo(23,21)) {
+                        result = creep.moveTo(23,21);
                     }
                 }
             }
         }
         creep.memory.result = result;
+    },
+    
+    getBody: function (energy) {
+        if (energy < BODYPART_COST[MOVE] + BODYPART_COST[ATTACK]) {
+            return null;
+        }
+
+        var attack = [], move = [];
+        var cost = BODYPART_COST[MOVE] + BODYPART_COST[ATTACK];
+
+        while (energy >= cost) {
+            if (attack.length < 5) {
+                energy = this.addPart(energy, move, MOVE);
+                energy = this.addPart(energy, attack, ATTACK);
+            } else {
+                break;
+            }
+        }
+
+        return attack.concat(move);
+    },
+    
+    addPart: function (energy, parts, part) {
+        parts.push(part);
+        return energy - BODYPART_COST[part];
     }
 };
 

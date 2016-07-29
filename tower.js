@@ -1,4 +1,4 @@
-tower = {
+var tower = {
     run: function(tower) {
         var hostileAttackCreeps = tower.room.find(FIND_HOSTILE_CREEPS, { 
             filter: (c) => c.getActiveBodyparts(ATTACK) > 0 || c.getActiveBodyparts(RANGED_ATTACK) > 0
@@ -18,7 +18,7 @@ tower = {
                 var hostileConstructionSites = tower.room.find(FIND_HOSTILE_CONSTRUCTION_SITES);
                 
                 if(hostileConstructionSites.length > 0) {
-                    for(h of hostileConstructionSites) {
+                    for(let h of hostileConstructionSites) {
                         hostileStructures.push(h);
                     }
                 }
@@ -34,7 +34,7 @@ tower = {
                     if(damagedAttackCreeps.length > 0) {
                         var target = damagedAttackCreeps[0];
                         
-                        for(c of damagedAttackCreeps) {
+                        for(let c of damagedAttackCreeps) {
                             if((c.hits / c.hitsMax) < (target.hits / target.hitsMax)) {
                                 target = c;
                             }
@@ -48,7 +48,7 @@ tower = {
                         if(damagedCreeps.length > 0) {
                             var target = damagedCreeps[0];
                             
-                            for(c of damagedCreeps) {
+                            for(let c of damagedCreeps) {
                                 if((c.hits / c.hitsMax) < (target.hits / target.hitsMax)) {
                                     target = c;
                                 }
@@ -72,7 +72,7 @@ tower = {
                             if(damagedStructures.length > 0) {
                                 var target = damagedStructures[0];
                                 
-                                for(s of damagedStructures) {
+                                for(let s of damagedStructures) {
                                     if(s.structureType === STRUCTURE_WALL && target.structureType === STRUCTURE_WALL) {
                                         if(wallPercentage(s, rampartHitsMax) < wallPercentage(target, rampartHitsMax)) {
                                             target = s;
