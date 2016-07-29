@@ -55,7 +55,14 @@ tower = {
                             }
                             tower.heal(target);
                         } else {
-                            var rampartHitsMax = tower.room.find(FIND_MY_STRUCTURES, { filter: (s) => s.structureType === STRUCTURE_RAMPART })[0].hitsMax
+                            var rampart = tower.room.find(FIND_MY_STRUCTURES, { filter: (s) => s.structureType === STRUCTURE_RAMPART })[0];
+
+                            if(rampart == undefined) {
+                                var rampartHitsMax = 1000000;
+                            } else {
+                                var rampartHitsMax = rampart.hitsMax;
+                            }
+                            
                             var damagedStructures = tower.room.find(FIND_STRUCTURES, {
                                 filter: (s) => (s.structureType === STRUCTURE_RAMPART) 
                                 || (s.hits / s.hitsMax < 0.33 && s.structureType !== STRUCTURE_WALL) 
