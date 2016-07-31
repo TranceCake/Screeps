@@ -23,7 +23,7 @@ var roleHarvester = {
             var priorityStorages = _.filter(energyStorages, (s) => s.structureType === STRUCTURE_SPAWN || s.structureType === STRUCTURE_EXTENSION);
             var creepsInRoom = _.filter(Game.creeps, c => c.room.name === creep.room.name);
             var linkFillers =  _.filter(creepsInRoom, creep => creep.memory.role === 'linkFiller');
-            var lowCreeps = _.filter(creepsInRoom, c => ((c.memory.role === 'upgrader' && !linkFillers.length > 0) || c.memory.role === 'builder') && c.carry.energy < (c.carryCapacity / 2));
+            var lowCreeps = _.filter(creepsInRoom, c => ((c.memory.role === 'upgrader' && !linkFillers.length > 0) || (c.memory.role === 'builder' && c.memory.idle === false)) && c.carry.energy < (c.carryCapacity / 2));
             var priorityCreeps = _.filter(lowCreeps, c => c.carry.energy === 0);
             
             if(priorityStorages.length > 0) {

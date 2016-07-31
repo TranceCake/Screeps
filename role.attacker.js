@@ -3,10 +3,10 @@ var roleAttacker = {
     run: function(creep) {
         var result;
         var marker = Game.flags['Attack'];
-        // var attackers = _.filter(Game.creeps, creep => creep.memory.role === 'attacker');
-        // var minAttackers = 1;
+        var attackers = _.filter(Game.creeps, creep => creep.memory.role === 'attacker');
+        var minAttackers = 2;
         
-        //if(attackers.length >= minAttackers) {
+        if(attackers.length >= minAttackers) {
             if(marker !== undefined) {
                 if(marker.room !== undefined && marker.room.name === creep.room.name) {
                     var hostileCreeps = creep.room.find(FIND_HOSTILE_CREEPS);
@@ -73,11 +73,11 @@ var roleAttacker = {
                     result = creep.moveTo(Game.flags['Idle']);
                 }
             }
-        // } else {
-        //     if(!creep.pos.isNearTo(Game.flags['Idle'])) {
-        //         result = creep.moveTo(Game.flags['Idle']);
-        //     }
-        // }
+        } else {
+            if(!creep.pos.isNearTo(Game.flags['Idle'])) {
+                result = creep.moveTo(Game.flags['Idle']);
+            }
+        }
         creep.memory.result = result;
     },
     
