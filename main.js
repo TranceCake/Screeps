@@ -5,6 +5,9 @@ var roleUpgrader = require('role.upgrader');
 var spawnManager = require('manager.spawn');
 var roleDefender = require('role.defender');
 var tower = require('tower');
+var link = require('link');
+var roleLinkFiller = require('role.linkFiller');
+var roleAttacker = require('role.attacker');
 
 module.exports.loop = function () {
     
@@ -17,14 +20,15 @@ module.exports.loop = function () {
             for(let source of sources) {
                 Object.assign(room.memory.sources, { [source.id]: {} } );
             }
+            
+            var spawn = _.filter(Game.spawns, spawn => spawn.room.name === room.name);
+            _.forEach(room.memory.sources, function(source, id) {
+                if(_.isUndefined(source.range) && spawn.length > 0) {
+                    _.set(room.memory.sources[id], 'range', spawn[0].pos.findPathTo(Game.getObjectById(id)).length);
+                }
+            });
         }
         
-        var spawn = _.filter(Game.spawns, spawn => spawn.room.name === room.name);
-        _.forEach(room.memory.sources, function(source, id) {
-            if(_.isUndefined(source.range) && spawn.length > 0) {
-                _.set(room.memory.sources[id], 'range', spawn[0].pos.findPathTo(Game.getObjectById(id)).length);
-            }
-        });
     });
     
     // garbage collection
@@ -49,11 +53,14 @@ module.exports.loop = function () {
             if(creep.memory.role == 'upgrader') {
                 roleUpgrader.run(creep);
             }
-            // if(creep.memory.role == 'repairer') {
-            //     roleRepairer.run(creep);
-            // }
             if(creep.memory.role == 'defender') {
                 roleDefender.run(creep);
+            }
+            if(creep.memory.role == 'linkFiller') {
+                roleLinkFiller.run(creep);
+            }
+            if(creep.memory.role == 'attacker') {
+                roleAttacker.run(creep);
             }
         }
     }
@@ -66,27 +73,19 @@ module.exports.loop = function () {
         }
     }
     
-    //==== Auto spawning section ====\\
-    
+    // executing jobs for all towers
+    var links = _.filter(Game.structures, (s) => s.structureType === STRUCTURE_LINK);
+    if(towers.length > 0) {
+        for(let l of links) {
+            link.run(l);
+        }
+    }
     // determining the number and type of creeps needed
     
     _.forEach(Game.spawns, spawn => {
-        spawnManager.run(spawn);
+        spawn.memory.result = spawnManager.run(spawn);
     });
 }
-
-// logging bit that I might want back?
-        
-//     if(!(name < 0)) {
-//         console.log('// spawned new ' + tier + ' ' + role + ': ' + name);
-//         console.log('| # Harvesters: ' + roleFilter('harvester').length + ' - '  + getTotalRolePoints('harvester') + '/' + minHarvesters);
-//         console.log('| # Defenders: ' + roleFilter('defender').length + ' - '  + getTotalRolePoints('defender') + '/' + minDefenders);
-//         console.log('| # Upgraders: ' + roleFilter('upgrader').length + ' - ' + getTotalRolePoints('upgrader') + '/' + minUpgraders);
-//         console.log('| # Builders: ' + roleFilter('builder').length + ' - '  + getTotalRolePoints('builder') + '/' + minBuilders);
-//         console.log('| # Repairers: ' + roleFilter('repairer').length + ' - '  + getTotalRolePoints('repairer') + '/' + minRepairers);
-//         console.log('| # Creeps total: ' + (roleFilter('harvester').length + roleFilter('upgrader').length + roleFilter('builder').length + roleFilter('defender').length + roleFilter('repairer').length));
-//     }
-
 
 
 

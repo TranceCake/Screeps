@@ -1,29 +1,28 @@
-var roleUpgrader = require('role.upgrader');
-
 var roleBuilder = {
 
     /** @param {Creep} creep **/
     run: function(creep) {
         var result;
-        var site;
         
-        var sites = creep.room.find(FIND_CONSTRUCTION_SITES);
-        var prioritySites = _.filter(sites, (s) => s.structureType === STRUCTURE_RAMPART || s.structureType === STRUCTURE_WALL);
-        var topPrioritySites = _.filter(sites, (s) => s.structureType === STRUCTURE_EXTENSION || s.structureType === STRUCTURE_TOWER);
-        
-        if(topPrioritySites.length > 0) {
-            site = creep.pos.findClosestByPath(topPrioritySites);
-            result = work(creep, site);
-        } else if(prioritySites.length > 0) {
-            site = creep.pos.findClosestByPath(prioritySites);
-            result = work(creep, site);
-        } else if(sites.length > 0) {
-            site = creep.pos.findClosestByPath(sites);
-            result = work(creep, site);
-        } else {
-            roleUpgrader.run(creep);
-        }
+        if(creep.carry.energy > 0) {
+            var site;
+            var sites = creep.room.find(FIND_CONSTRUCTION_SITES);
+            var prioritySites = _.filter(sites, (s) => s.structureType === STRUCTURE_RAMPART || s.structureType === STRUCTURE_WALL);
+            var topPrioritySites = _.filter(sites, (s) => s.structureType === STRUCTURE_EXTENSION || s.structureType === STRUCTURE_TOWER);
             
+            if(topPrioritySites.length > 0) {
+                site = creep.pos.findClosestByPath(topPrioritySites);
+                result = work(creep, site);
+            } else if(prioritySites.length > 0) {
+                site = creep.pos.findClosestByPath(prioritySites);
+                result = work(creep, site);
+            } else if(sites.length > 0) {
+                site = creep.pos.findClosestByPath(sites);
+                result = work(creep, site);
+            }
+        } else {
+            result = -6;   
+        }
         creep.memory.result = result;
 	}
 };

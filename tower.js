@@ -56,33 +56,39 @@ var tower = {
                             tower.heal(target);
                         } else {
                             var rampart = tower.room.find(FIND_MY_STRUCTURES, { filter: (s) => s.structureType === STRUCTURE_RAMPART })[0];
+                            var maxHits;
 
                             if(rampart == undefined) {
-                                var rampartHitsMax = 1000000;
+                                maxHits = 300000;
                             } else {
-                                var rampartHitsMax = rampart.hitsMax;
+                                maxHits = rampart.hitsMax;
                             }
                             
+                            if(maxHits > tower.room.controller.level * 300000)
+                                maxHits = tower.room.controller.level * 300000;
+                            
                             var damagedStructures = tower.room.find(FIND_STRUCTURES, {
-                                filter: (s) => (s.structureType === STRUCTURE_RAMPART) 
-                                || (s.hits / s.hitsMax < 0.33 && s.structureType !== STRUCTURE_WALL) 
-                                || (s.structureType === STRUCTURE_WALL && s.hits < rampartHitsMax)
+                                filter: (s) => (s.structureType === STRUCTURE_RAMPART && s.hits < maxHits) 
+                                || (s.hits / s.hitsMax < 0.33 && !(s.structureType === STRUCTURE_WALL || s.structureType === STRUCTURE_RAMPART)) 
+                                || (s.structureType === STRUCTURE_WALL && s.hits < maxHits)
                             });
+                            
+                            //console.log(damagedStructures)
                             
                             if(damagedStructures.length > 0) {
                                 var target = damagedStructures[0];
                                 
                                 for(let s of damagedStructures) {
                                     if(s.structureType === STRUCTURE_WALL && target.structureType === STRUCTURE_WALL) {
-                                        if(wallPercentage(s, rampartHitsMax) < wallPercentage(target, rampartHitsMax)) {
+                                        if(wallPercentage(s, maxHits) < wallPercentage(target, maxHits)) {
                                             target = s;
                                         }
                                     } else if(s.structureType === STRUCTURE_WALL && target.structureType !== STRUCTURE_WALL) {
-                                        if(wallPercentage(s, rampartHitsMax) < target.hits / target.hitsMax) {
+                                        if(wallPercentage(s, maxHits) < target.hits / target.hitsMax) {
                                             target = s;
                                         }
                                     } else if(s.structureType !== STRUCTURE_WALL && target.structureType === STRUCTURE_WALL) {
-                                        if(s.hits / s.hitsMax < wallPercentage(target, rampartHitsMax)) {
+                                        if(s.hits / s.hitsMax < wallPercentage(target, maxHits)) {
                                             target = s;
                                         }
                                     } else {

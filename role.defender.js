@@ -41,8 +41,8 @@ var roleDefender = {
                     // });
                     //console.log(flag.pos);
                     
-                    if(!creep.pos.isNearTo(23,21)) {
-                        result = creep.moveTo(23,21);
+                    if(!creep.pos.isNearTo(Game.flags['Idle'])) {
+                        result = creep.moveTo(Game.flags['Idle']);
                     }
                 }
             }
