@@ -36,13 +36,15 @@ var roleDefender = {
                     var target = creep.pos.findClosestByPath(hostileStructures);
                     result = defend(creep, target);
                 } else {
-                    // var flag = creep.room.find(FIND_FLAGS, {
-                    //     filter: (f) => f.name === 'Congregate'
-                    // });
-                    //console.log(flag.pos);
+                    var flags = _.filter(Game.flags, f => f.room !== undefined && f.room.name === creep.room.name);
+                    var flagName = creep.room.name + '-Idle';
                     
-                    if(!creep.pos.isNearTo(Game.flags['Idle'])) {
-                        result = creep.moveTo(Game.flags['Idle']);
+                    if(flags.length > 0) {
+                        var flag = _.filter(flags, f => f.name === flagName)[0];
+                        
+                        if(!creep.pos.isNearTo(flag)) {
+                            result = creep.moveTo(flag);
+                        }
                     }
                 }
             }

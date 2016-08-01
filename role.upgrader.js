@@ -6,7 +6,9 @@ var roleUpgrader = {
 
         if(creep.carry.energy > 0) {
             if(creep.upgradeController(creep.room.controller) === ERR_NOT_IN_RANGE) {
-                result = creep.moveTo(creep.room.controller);
+                var flag = _.filter(Game.flags, f => f.name === creep.memory.flag)[0];
+
+                result = creep.moveTo(flag);
             } else {
                 result = creep.upgradeController(creep.room.controller);
             }

@@ -24,8 +24,15 @@ var roleBuilder = {
                 result = work(creep, site);
             } else {
                 creep.memory.idle = true;
-                if(!creep.pos.isNearTo(Game.flags['Idle'])) {
-                    result = creep.moveTo(Game.flags['Idle']);
+                var flags = _.filter(Game.flags, f => f.room !== undefined && f.room.name === creep.room.name);
+                var flagName = creep.room.name + '-Idle';
+                
+                if(flags.length > 0) {
+                    var flag = _.filter(flags, f => f.name === flagName)[0];
+                    
+                    if(!creep.pos.isNearTo(flag)) {
+                        result = creep.moveTo(flag);
+                    }
                 }
             }
         } else {

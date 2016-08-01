@@ -22,7 +22,7 @@ var roleHarvester = {
 	        var buffers = _.filter(creep.room.find(FIND_STRUCTURES), (s) => s.store && s.store[RESOURCE_ENERGY] < s.storeCapacity && s.structureType !== STRUCTURE_CONTAINER);
             var priorityStorages = _.filter(energyStorages, (s) => s.structureType === STRUCTURE_SPAWN || s.structureType === STRUCTURE_EXTENSION);
             var creepsInRoom = _.filter(Game.creeps, c => c.room.name === creep.room.name);
-            var linkFillers =  _.filter(creepsInRoom, creep => creep.memory.role === 'linkFiller');
+            var linkFillers =  _.filter(creepsInRoom, c => c.memory.role === 'linkFiller' && c.room.name === creep.room.name);
             var lowCreeps = _.filter(creepsInRoom, c => ((c.memory.role === 'upgrader' && !linkFillers.length > 0) || (c.memory.role === 'builder' && c.memory.idle === false)) && c.carry.energy < (c.carryCapacity / 2));
             var priorityCreeps = _.filter(lowCreeps, c => c.carry.energy === 0);
             
@@ -42,7 +42,17 @@ var roleHarvester = {
         } else {
             var targets = _.filter(creep.room.find(FIND_DROPPED_ENERGY), e => e.amount >= (creep.carryCapacity / 2) && e.resourceType === RESOURCE_ENERGY);
             if(targets.length > 0) {
-                var target = creep.pos.findClosestByPath(targets);
+                var target = targets[0];
+                var targetValue = target.amount / creep.pos.findPathTo(target).length;
+                
+                for(let t of targets) {
+                    value = t.amount / creep.pos.findPathTo(t).length;
+                    if(value > targetValue) {
+                        target = t;
+                        targetValue = value;
+                    }
+                }
+                
                 result = collect(creep, target);
             } else {
                 targets = _.filter(creep.room.find(FIND_STRUCTURES), s => s.structureType === STRUCTURE_CONTAINER);
@@ -51,6 +61,7 @@ var roleHarvester = {
                 if(priorityTargets.length > 0) {
                     var target = priorityTargets[0];
                     var targetValue = target.store[RESOURCE_ENERGY] / creep.pos.findPathTo(target).length;
+                    
                     for(let p of priorityTargets) {
                         value = p.store[RESOURCE_ENERGY] / creep.pos.findPathTo(p).length;
                         if(value > targetValue) {

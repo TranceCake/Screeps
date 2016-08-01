@@ -99,9 +99,9 @@ var spawnManager = {
         var result;
         
         if(miners.length == 0) {
-            result = this.spawnCreep(spawn, roleMiner.getBody(Math.floor(available / 2)), 'miner', { sourceId: emptySources[0] });
+            result = this.spawnCreep(spawn, roleMiner.getBody(available), 'miner', { sourceId: emptySources[0] });
         } else if(collectors.length == 0 && miners.length == 1) {
-            result = this.spawnCreep(spawn, roleCollector.getBody(Math.floor(available / 2)), 'collector', { working: false });
+            result = this.spawnCreep(spawn, roleCollector.getBody(available), 'collector', { working: false });
         } else if(available === capacity) {
             if(defenders.length < minDefenders) {
                 result = this.spawnCreep(spawn, roleDefender.getBody(available), 'defender');
@@ -110,7 +110,7 @@ var spawnManager = {
             } else if(collectors.length < minCollectors) {
                 result = this.spawnCreep(spawn, roleCollector.getBody(available), 'collector', { working: false });
             } else if(upgraders.length < minUpgraders) {
-                result = this.spawnCreep(spawn, roleUpgrader.getBody(available), 'upgrader');
+                result = this.spawnCreep(spawn, roleUpgrader.getBody(available), 'upgrader', { flag: spawn.room.name + '-Upgrade' });
             } else if(linkFillers.length < minLinkFillers) {
                 result = this.spawnCreep(spawn, [WORK, CARRY, MOVE], 'linkFiller');
             } else if(builders.length < minBuilders) {
@@ -133,10 +133,10 @@ var spawnManager = {
 	    var result = spawn.createCreep(body, undefined, _.assign(mem, { role: role }));
 	    
 	    if(_.isString(result)) {
-            console.log('Spawned new ' + role + ', ' + result + ' [' + body + ']');
+            console.log(spawn.name + ' in ' + spawn.room.name + ' spawned new ' + role + ', ' + result + ' [' + body + ']');
             return result;
         } else {
-            console.log('Failed to spawn new ' + role + ', err: ' + result);
+            console.log(spawn.name + ' in ' + spawn.room.name + ' failed to spawn new ' + role + ', err: ' + result);
             return null;
         }
 	}
