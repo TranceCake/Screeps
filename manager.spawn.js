@@ -22,14 +22,11 @@ var spawnManager = {
         
         var collectors = _.filter(creepsInRoom, creep => creep.memory.role === 'collector');
         var extensions = _.filter(spawn.room.find(FIND_MY_STRUCTURES), s => s.structureType === STRUCTURE_EXTENSION);
-        var minCollectors = sourceIds.length + Math.floor(extensions.length / 5);
-        if(minCollectors > 6) {
-            minCollectors = 6;
-        } 
+        var minCollectors = sourceIds.length;
         
-        if(links.length > 1){
-            minCollectors = 4;
-        }
+        if(links.length < 2)
+            minCollectors += Math.floor(extensions.length / 5);
+
         
         var emptySources = [];
         
@@ -82,6 +79,20 @@ var spawnManager = {
             var minAttackers = 0;
         }
         
+        var claimers = _.filter(Game.creeps, creep => creep.memory.role === 'claimer');
+        if(Game.flags['Claim'] !== undefined) {
+            var minClaimers = 1;
+        } else {
+            var minClaimers = 0;
+        }
+        
+        var spawnBuilders = _.filter(Game.creeps, creep => creep.memory.role === 'spawnBuilder');
+        if(Game.flags['Spawn'] !== undefined) {
+            var minSpawnBuilders = 2;
+        } else {
+            var minSpawnBuilders = 0;
+        }
+        
         // calculating max energy capacity and current reserves
         var capacity = spawn.room.energyCapacityAvailable;
         var available = spawn.room.energyAvailable;
@@ -106,6 +117,10 @@ var spawnManager = {
                 result = this.spawnCreep(spawn, [WORK, CARRY, CARRY, MOVE], 'builder', { idle: false });
             } else if(attackers.length < minAttackers) {
                 result = this.spawnCreep(spawn, [TOUGH, MOVE, TOUGH, MOVE, TOUGH, MOVE, TOUGH, MOVE, RANGED_ATTACK, MOVE, RANGED_ATTACK, MOVE, RANGED_ATTACK, MOVE, ATTACK, MOVE], 'attacker');
+            } else if(claimers.length < minClaimers) {
+                result = this.spawnCreep(spawn, [TOUGH, MOVE, TOUGH, MOVE, CLAIM, MOVE], 'claimer');
+            } else if(spawnBuilders.length < minSpawnBuilders) {
+                result = this.spawnCreep(spawn, [WORK, MOVE, WORK, MOVE, WORK, MOVE, WORK, MOVE, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE], 'spawnBuilder', { working: false });
             } else {
                 result = 'nothing to spawn..';
             }

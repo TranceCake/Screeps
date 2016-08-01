@@ -8,6 +8,8 @@ var tower = require('tower');
 var link = require('link');
 var roleLinkFiller = require('role.linkFiller');
 var roleAttacker = require('role.attacker');
+var roleClaimer = require('role.claimer');
+var roleSpawnBuilder = require('role.spawnBuilder');
 
 module.exports.loop = function () {
     
@@ -43,24 +45,22 @@ module.exports.loop = function () {
         if(!creep.spawning) {
             if(creep.memory.role == 'miner') {
                 roleMiner.run(creep);
-            }
-            if(creep.memory.role == 'collector') {
+            } else if(creep.memory.role == 'collector') {
                 roleCollector.run(creep);
-            }
-            if(creep.memory.role == 'builder') {
+            } else if(creep.memory.role == 'builder') {
                 roleBuilder.run(creep);
-            }
-            if(creep.memory.role == 'upgrader') {
+            } else if(creep.memory.role == 'upgrader') {
                 roleUpgrader.run(creep);
-            }
-            if(creep.memory.role == 'defender') {
+            } else if(creep.memory.role == 'defender') {
                 roleDefender.run(creep);
-            }
-            if(creep.memory.role == 'linkFiller') {
+            } else if(creep.memory.role == 'linkFiller') {
                 roleLinkFiller.run(creep);
-            }
-            if(creep.memory.role == 'attacker') {
+            } else if(creep.memory.role == 'attacker') {
                 roleAttacker.run(creep);
+            } else if(creep.memory.role == 'claimer') {
+                roleClaimer.run(creep);
+            } else if(creep.memory.role == 'spawnBuilder') {
+                roleSpawnBuilder.run(creep);
             }
         }
     }
