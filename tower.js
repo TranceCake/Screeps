@@ -1,7 +1,9 @@
 var tower = {
     run: function(tower) {
+        // var defended = _.filter(tower.room.find(FIND_STRUCTURES), s => s.structureType !== STRUCTURE_ROAD);
+        // defended += _.filter(tower.room.find(FIND_MY_CREEPS))
         var hostileAttackCreeps = tower.room.find(FIND_HOSTILE_CREEPS, { 
-            filter: (c) => c.getActiveBodyparts(ATTACK) > 0 || c.getActiveBodyparts(RANGED_ATTACK) > 0
+            filter: (c) => (c.getActiveBodyparts(ATTACK) > 0 || c.getActiveBodyparts(RANGED_ATTACK) > 0)
         });
         
         if(hostileAttackCreeps.length > 0) {
@@ -79,15 +81,15 @@ var tower = {
                                 var target = damagedStructures[0];
                                 
                                 for(let s of damagedStructures) {
-                                    if(s.structureType === STRUCTURE_WALL && target.structureType === STRUCTURE_WALL) {
+                                    if((s.structureType === STRUCTURE_WALL || s.structureType === STRUCTURE_RAMPART) && (target.structureType === STRUCTURE_WALL || target.structureType === STRUCTURE_RAMPART)) {
                                         if(wallPercentage(s, maxHits) < wallPercentage(target, maxHits)) {
                                             target = s;
                                         }
-                                    } else if(s.structureType === STRUCTURE_WALL && target.structureType !== STRUCTURE_WALL) {
+                                    } else if((s.structureType === STRUCTURE_WALL || s.structureType === STRUCTURE_RAMPART) && !(target.structureType === STRUCTURE_WALL || target.structureType === STRUCTURE_RAMPART)) {
                                         if(wallPercentage(s, maxHits) < target.hits / target.hitsMax) {
                                             target = s;
                                         }
-                                    } else if(s.structureType !== STRUCTURE_WALL && target.structureType === STRUCTURE_WALL) {
+                                    } else if(!(s.structureType === STRUCTURE_WALL || s.structureType === STRUCTURE_RAMPART) && (target.structureType === STRUCTURE_WALL || target.structureType === STRUCTURE_RAMPART)) {
                                         if(s.hits / s.hitsMax < wallPercentage(target, maxHits)) {
                                             target = s;
                                         }

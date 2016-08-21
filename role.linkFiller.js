@@ -10,10 +10,6 @@ var roleLinkFiller = {
             } else if(!creep.pos.isNearTo(link[0])) {
                 result = creep.moveTo(link[0]);
             } else {
-                var amount = link[0].energyCapacity - link[0].energy;
-                if(amount > 50)
-                    amount = 50;
-
                 if(creep.carry.energy == 0 && storage.store[RESOURCE_ENERGY] > 0) {
                     result = creep.withdraw(storage, RESOURCE_ENERGY);
                 } else {

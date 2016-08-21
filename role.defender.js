@@ -69,7 +69,7 @@ var roleDefender = {
             }
         }
 
-        return attack.concat(move);
+        return move.concat(attack);
     },
     
     addPart: function (energy, parts, part) {

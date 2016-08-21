@@ -27,6 +27,8 @@ var spawnManager = {
         if(links.length < 2)
             minCollectors += Math.floor(extensions.length / 5);
 
+        if(_.sum(_.filter(spawn.room.find(FIND_STRUCTURES), s => s.structureType === STRUCTURE_CONTAINER), c => c.store[RESOURCE_ENERGY]) > 1000)
+            minCollectors += 1;
         
         var emptySources = [];
         
@@ -69,7 +71,7 @@ var spawnManager = {
         if(spawn.room.find(FIND_HOSTILE_CREEPS).length > 0) {
             var minDefenders = spawn.room.find(FIND_HOSTILE_CREEPS).length + 3;
         } else {
-            var minDefenders = 3;
+            var minDefenders = 0;
         }
         
         var attackers = _.filter(Game.creeps, creep => creep.memory.role === 'attacker');
@@ -93,6 +95,13 @@ var spawnManager = {
             var minSpawnBuilders = 0;
         }
         
+        var drainers = _.filter(Game.creeps, creep => creep.memory.role === 'drainer');
+        if(Game.flags['Drain'] !== undefined) {
+            var minDrainers = 4;
+        } else {
+            var minDrainers = 0;
+        }
+        
         // calculating max energy capacity and current reserves
         var capacity = spawn.room.energyCapacityAvailable;
         var available = spawn.room.energyAvailable;
@@ -102,7 +111,7 @@ var spawnManager = {
             result = this.spawnCreep(spawn, roleMiner.getBody(available), 'miner', { sourceId: emptySources[0] });
         } else if(collectors.length == 0 && miners.length == 1) {
             result = this.spawnCreep(spawn, roleCollector.getBody(available), 'collector', { working: false });
-        } else if(available === capacity) {
+        } else {
             if(defenders.length < minDefenders) {
                 result = this.spawnCreep(spawn, roleDefender.getBody(available), 'defender');
             } else if(emptySources.length > 0) {
@@ -112,7 +121,7 @@ var spawnManager = {
             } else if(upgraders.length < minUpgraders) {
                 result = this.spawnCreep(spawn, roleUpgrader.getBody(available), 'upgrader', { flag: spawn.room.name + '-Upgrade' });
             } else if(linkFillers.length < minLinkFillers) {
-                result = this.spawnCreep(spawn, [WORK, CARRY, MOVE], 'linkFiller');
+                result = this.spawnCreep(spawn, [CARRY, CARRY, MOVE], 'linkFiller');
             } else if(builders.length < minBuilders) {
                 result = this.spawnCreep(spawn, [WORK, CARRY, CARRY, MOVE], 'builder', { idle: false });
             } else if(attackers.length < minAttackers) {
@@ -121,7 +130,9 @@ var spawnManager = {
                 result = this.spawnCreep(spawn, [TOUGH, MOVE, TOUGH, MOVE, CLAIM, MOVE], 'claimer');
             } else if(spawnBuilders.length < minSpawnBuilders) {
                 result = this.spawnCreep(spawn, [WORK, MOVE, WORK, MOVE, WORK, MOVE, WORK, MOVE, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE], 'spawnBuilder', { working: false });
-            } else {
+            } else if(drainers.length < minDrainers) {
+                result = this.spawnCreep(spawn, [TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL], 'drainer');
+            }else {
                 result = 'nothing to spawn..';
             }
         }
@@ -136,7 +147,7 @@ var spawnManager = {
             console.log(spawn.name + ' in ' + spawn.room.name + ' spawned new ' + role + ', ' + result + ' [' + body + ']');
             return result;
         } else {
-            console.log(spawn.name + ' in ' + spawn.room.name + ' failed to spawn new ' + role + ', err: ' + result);
+            //console.log(spawn.name + ' in ' + spawn.room.name + ' failed to spawn new ' + role + ', err: ' + result);
             return null;
         }
 	}
