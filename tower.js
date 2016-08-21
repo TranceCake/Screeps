@@ -115,8 +115,3 @@ module.exports = tower;
 function wallPercentage(structure, max) {
     return structure.hits / (structure.hitsMax - (structure.hitsMax - max));
 }
-
-
-
-
-
