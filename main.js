@@ -14,7 +14,7 @@ var roleClaimer = require('role.claimer');
 var roleSpawnBuilder = require('role.spawnBuilder');
 var roleDrainer = require('role.drainer');
 
-//profiler.enable();
+profiler.enable();
 
 module.exports.loop = function () {
     

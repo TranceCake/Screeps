@@ -1,82 +1,28 @@
-var roleHarvester = {
+var roleCollector = {
 
     /** @param {Creep} creep **/
     run: function(creep) {
         var result;
+        if(creep.memory.path === undefined || Game.getObjectById(creep.memory.target) === null)
+            result = this.findTarget(creep);
         
-        // used all energy, stop working
         if(creep.memory.working && creep.carry.energy == 0) {
             creep.memory.working = false;
-        }
-    
-        // energy at full capacity, release spot and start working
-        else if(!creep.memory.working && creep.carry.energy >= creep.carryCapacity / 2) {
+            result = this.findTarget(creep);
+        } else if(!creep.memory.working && creep.carry.energy === creep.carryCapacity) {
             creep.memory.working = true;
+            result = this.findTarget(creep);
         }
         
-
-        // instructions & harvesting
-	    if(creep.memory.working) {
-	        var energyStorages = _.filter(creep.room.find(FIND_STRUCTURES), s => s.energy < s.energyCapacity && !(s.structureType === STRUCTURE_LINK || s.structureType === STRUCTURE_TOWER));
-	        var towers = _.filter(creep.room.find(FIND_MY_STRUCTURES), s => s.structureType === STRUCTURE_TOWER && s.energy < s.energyCapacity * 0.8);
-	        var buffers = _.filter(creep.room.find(FIND_STRUCTURES), (s) => s.store && s.store[RESOURCE_ENERGY] < s.storeCapacity && s.structureType !== STRUCTURE_CONTAINER);
-            var priorityStorages = _.filter(energyStorages, (s) => s.structureType === STRUCTURE_SPAWN || s.structureType === STRUCTURE_EXTENSION);
-            var creepsInRoom = _.filter(Game.creeps, c => c.room.name === creep.room.name);
-            var linkFillers =  _.filter(creepsInRoom, c => c.memory.role === 'linkFiller' && c.room.name === creep.room.name);
-            var lowCreeps = _.filter(creepsInRoom, c => ((c.memory.role === 'upgrader' && !linkFillers.length > 0) || (c.memory.role === 'builder' && c.memory.idle === false)) && c.carry.energy < (c.carryCapacity / 3));
-            var priorityCreeps = _.filter(lowCreeps, c => c.carry.energy === 0);
-            
-            if(priorityStorages.length > 0) {
-                result = work(creep, creep.pos.findClosestByPath(priorityStorages));
-            } else if(priorityCreeps.length > 0){
-                result = work(creep, creep.pos.findClosestByPath(priorityCreeps));
-            } else if(energyStorages.length > 0) {
-                result = work(creep, creep.pos.findClosestByPath(energyStorages));
-            } else if(lowCreeps.length > 0) {
-                result = work(creep, creep.pos.findClosestByPath(lowCreeps));
-            } else if(towers.length > 0) {
-                result = work(creep, creep.pos.findClosestByPath(towers));
-            } else if(buffers.length > 0) {
-                result = work(creep, creep.pos.findClosestByPath(buffers));
-            }
-        } else {
-            var targets = _.filter(creep.room.find(FIND_DROPPED_ENERGY), e => e.amount >= (creep.carryCapacity / 2) && e.resourceType === RESOURCE_ENERGY);
-            if(targets.length > 0) {
-                var target = targets[0];
-                var targetValue = target.amount / creep.pos.findPathTo(target).length;
-                
-                for(let t of targets) {
-                    value = t.amount / creep.pos.findPathTo(t).length;
-                    if(value > targetValue) {
-                        target = t;
-                        targetValue = value;
-                    }
-                }
-                
-                result = collect(creep, target);
+        var target = Game.getObjectById(creep.memory.target);
+        if(!!target) {
+            if(!creep.pos.isNearTo(target)) {
+                result = this.moveTo(creep);
             } else {
-                targets = _.filter(creep.room.find(FIND_STRUCTURES), s => s.structureType === STRUCTURE_CONTAINER);
-                var priorityTargets = _.filter(targets, t => t.structureType === STRUCTURE_CONTAINER);
-                
-                if(priorityTargets.length > 0) {
-                    var target = priorityTargets[0];
-                    var targetValue = target.store[RESOURCE_ENERGY] / creep.pos.findPathTo(target).length;
-                    
-                    for(let p of priorityTargets) {
-                        value = p.store[RESOURCE_ENERGY] / creep.pos.findPathTo(p).length;
-                        if(value > targetValue) {
-                            target = p;
-                            targetValue = value;
-                        }
-                    }
-                    
-                    result = take(creep, target);
-                } else if(targets.length > 0) {
-                    var target = creep.pos.findClosestByPath(targets);
-                    result = take(creep, target);
-                }
+                result = this.work(target, creep);
             }
         }
+        
         creep.memory.result = result;
 	},
 	
@@ -89,7 +35,7 @@ var roleHarvester = {
         var cost = BODYPART_COST[MOVE] + BODYPART_COST[CARRY];
 
         while (energy >= cost) {
-            if (carry.length < 5) {
+            if (carry.length < 6) {
                 energy = this.addPart(energy, move, MOVE);
                 energy = this.addPart(energy, carry, CARRY);
             } else {
@@ -103,40 +49,152 @@ var roleHarvester = {
     addPart: function (energy, parts, part) {
         parts.push(part);
         return energy - BODYPART_COST[part];
+    },
+    
+    findTarget: function(creep) {
+        if(creep.memory.working) {
+            var energyStorages = _.filter(creep.room.find(FIND_STRUCTURES), s => s.energy < s.energyCapacity && !(s.structureType === STRUCTURE_LINK || s.structureType === STRUCTURE_TOWER));
+            var priorityStorages = _.filter(energyStorages, (s) => s.structureType === STRUCTURE_SPAWN || s.structureType === STRUCTURE_EXTENSION);
+
+            if(priorityStorages.length > 0) {
+                var target = creep.pos.findClosestByPath(priorityStorages);
+            } else {
+                var creepsInRoom = _.filter(Game.creeps, c => c.room.name === creep.room.name);
+                var linkFillers =  _.filter(creepsInRoom, c => c.memory.role === 'linkFiller' && c.room.name === creep.room.name);
+                
+                var lowCreeps = _.filter(creepsInRoom, c => ((c.memory.role === 'upgrader' && !linkFillers.length > 0) || (c.memory.role === 'builder' && c.memory.idle === false)) && c.carry.energy < (c.carryCapacity / 3));
+                var priorityCreeps = _.filter(lowCreeps, c => c.carry.energy === 0);
+            
+                if(priorityCreeps.length > 0) {
+                    var target = creep.pos.findClosestByPath(priorityCreeps);
+                } else {
+                    if(energyStorages.length > 0) {
+                        var target = creep.pos.findClosestByPath(energyStorages);
+                    } else {
+                        if(lowCreeps.length > 0) {
+                            var target = creep.pos.findClosestByPath(lowCreeps);
+                        } else {
+                            var towers = _.filter(creep.room.find(FIND_MY_STRUCTURES), s => s.structureType === STRUCTURE_TOWER && s.energy < s.energyCapacity * 0.8);
+                            
+                            if(towers.length > 0) {
+                                var target = creep.pos.findClosestByPath(towers);
+                            } else {
+                                var buffers = _.filter(creep.room.find(FIND_STRUCTURES), (s) => s.store && s.store[RESOURCE_ENERGY] < s.storeCapacity && s.structureType !== STRUCTURE_CONTAINER);
+                                
+                                if(buffers.length > 0) {
+                                    var target = creep.pos.findClosestByPath(buffers);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            
+            if(!!target) {
+                creep.memory.target = target.id;
+                creep.memory.path = creep.room.findPath(creep.pos, target.pos, {serialize: true});
+                return OK;
+            } else {
+                return ERR_NOT_FOUND;
+            }
+        } else {
+            var targets = _.filter(creep.room.find(FIND_DROPPED_ENERGY), e => e.amount >= (creep.carryCapacity) && e.resourceType === RESOURCE_ENERGY);
+            if(targets.length > 0) {
+                var target = targets[0];
+                var targetValue = target.amount / creep.pos.findPathTo(target).length;
+                
+                for(let t of targets) {
+                    var value = t.amount / creep.pos.findPathTo(t).length;
+                    if(value > targetValue) {
+                        target = t;
+                        targetValue = value;
+                    }
+                }
+            } else {
+                targets = _.filter(creep.room.find(FIND_STRUCTURES), s => s.structureType === STRUCTURE_CONTAINER && s.store[RESOURCE_ENERGY] > 0);
+                
+                if(targets.length > 0) {
+                    var target = targets[0];
+                    var targetValue = target.store[RESOURCE_ENERGY] / creep.pos.findPathTo(target).length;
+                    
+                    for(let t of targets) {
+                        var value = t.store[RESOURCE_ENERGY] / creep.pos.findPathTo(t).length;
+                        if(value > targetValue) {
+                            target = t;
+                            targetValue = value;
+                        }
+                    }
+                }
+            }
+            
+            if(!!target) {
+                creep.memory.target = target.id;
+                creep.memory.path = creep.room.findPath(creep.pos, target.pos, {serialize: true});
+                return OK;
+            } else {
+                return ERR_NOT_ENOUGH_ENERGY;
+            }
+        }
+    },
+    
+    recalculatePath: function(creep) {
+        var target = Game.getObjectById(creep.memory.target);
+        if(!!target) {
+            creep.memory.path = creep.room.findPath(creep.pos, target.pos, {serialize: true});
+        } else {
+            this.findTarget(creep);
+        }
+    },
+    
+    moveTo: function(creep) {
+    	var result;
+        
+        if(creep.memory.lastPos !== undefined) {
+        	if(creep.pos.x === creep.memory.lastPos.x && creep.pos.y === creep.memory.lastPos.y) {
+        		this.recalculatePath(creep);
+        	}
+        }
+    
+    	result = creep.moveByPath(creep.memory.path);
+    
+    	if(result === OK) {
+    		creep.memory.lastPos = creep.pos;
+    	} else if(result === ERR_NOT_FOUND) {
+    		this.recalculatePath(creep);
+    		result = creep.moveByPath(creep.memory.path);
+    	}
+    
+    	return result;
+    },
+    
+    work: function(target, creep) {
+        var result;
+        if(creep.memory.working) {
+            result = creep.transfer(target, RESOURCE_ENERGY);
+            this.findTarget(creep);
+            
+            return result;
+        } else {
+            if(target.store !== undefined) {
+                if(target.store[RESOURCE_ENERGY] > creep.carryCapacity - creep.carry.energy) {
+                    result = creep.withdraw(target, RESOURCE_ENERGY, creep.carryCapacity - creep.carry.energy);
+                } else {
+                    result = creep.withdraw(target, RESOURCE_ENERGY, target.store[RESOURCE_ENERGY]);
+                }
+                
+                if(result !== OK)
+                    this.findTarget(creep);
+                
+                return result;
+            } else {
+                result = creep.pickup(target);
+                if(result !== OK) {
+                    this.findTarget(creep);
+                }
+                return result;
+            }
+        }
     }
 };
 
-module.exports = roleHarvester;
-
-function work(creep, target) {
-    if(creep.transfer(target, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
-        return creep.moveTo(target);
-    } else {
-        return creep.transfer(target, RESOURCE_ENERGY);
-    }
-}
-
-function collect(creep, target) {
-    if(!creep.pos.isNearTo(target)) {
-        return creep.moveTo(target);
-    } else {
-        return creep.pickup(target);
-    } 
-}
-
-function take(creep, target) {
-    if(!creep.pos.isNearTo(target)) {
-        return creep.moveTo(target);
-    } else {
-        if(target.store[RESOURCE_ENERGY] > creep.carryCapacity - creep.carry.energy) {
-            return creep.withdraw(target, RESOURCE_ENERGY, creep.carryCapacity - creep.carry.energy);
-        } else {
-            return creep.withdraw(target, RESOURCE_ENERGY, target.store[RESOURCE_ENERGY]);
-        }
-    } 
-}
-
-
-
-
-
+module.exports = roleCollector;

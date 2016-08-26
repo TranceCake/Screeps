@@ -32,17 +32,13 @@ var roleUpgrader = {
         }
 
         var work = [], carry = [], move = [];
-        var cheapestPart = _.min([BODYPART_COST[MOVE], BODYPART_COST[CARRY], BODYPART_COST[WORK]]);
-        var moveParts = 1;
+        var cost = _.sum([BODYPART_COST[MOVE], BODYPART_COST[CARRY], BODYPART_COST[WORK]]);
 
-        while (energy >= cheapestPart) {
-            if(carry.length < 1) {
+        while (energy >= cost) {
+            if(carry.length < 6) {
                 energy = this.addPart(energy, carry, CARRY);
-            } else if(energy >= BODYPART_COST[MOVE] && move.length < moveParts) {
                 energy = this.addPart(energy, move, MOVE);
-            } else if(energy >= BODYPART_COST[WORK] && work.length < 5) {
                 energy = this.addPart(energy, work, WORK);
-                moveParts = Math.floor(work.length / 2);
             } else {
                 break;
             }

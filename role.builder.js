@@ -39,7 +39,32 @@ var roleBuilder = {
             result = -6;   
         }
         creep.memory.result = result;
-	}
+	},
+    
+    getBody: function (energy) {
+        if (energy < BODYPART_COST[MOVE] + BODYPART_COST[CARRY] + BODYPART_COST[WORK]) {
+            return null;
+        }
+
+        var work = [], carry = [], move = [];
+        var cost = _.sum([BODYPART_COST[MOVE], BODYPART_COST[CARRY], BODYPART_COST[WORK]]);
+
+        while (energy >= cost) {
+            if(carry.length < 6) {
+                energy = this.addPart(energy, carry, CARRY);
+                energy = this.addPart(energy, move, MOVE);
+                energy = this.addPart(energy, work, WORK);
+            } else {
+                break;
+            }
+        }
+        return work.concat(carry).concat(move);
+    },
+    
+    addPart: function (energy, parts, part) {
+        parts.push(part);
+        return energy - BODYPART_COST[part];
+    }
 };
 
 module.exports = roleBuilder;
