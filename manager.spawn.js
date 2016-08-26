@@ -24,9 +24,6 @@ var spawnManager = {
         var collectors = _.filter(creepsInRoom, creep => creep.memory.role === 'collector');
         var extensions = _.filter(spawn.room.find(FIND_MY_STRUCTURES), s => s.structureType === STRUCTURE_EXTENSION);
         var minCollectors = sourceIds.length;
-        
-        if(links.length < 2)
-            minCollectors += Math.floor(extensions.length / 5);
 
         if(_.sum(_.filter(spawn.room.find(FIND_STRUCTURES), s => s.structureType === STRUCTURE_CONTAINER), c => c.store[RESOURCE_ENERGY]) > 1000)
             minCollectors += 1;

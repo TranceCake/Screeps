@@ -1,7 +1,5 @@
 var tower = {
     run: function(tower) {
-        // var defended = _.filter(tower.room.find(FIND_STRUCTURES), s => s.structureType !== STRUCTURE_ROAD);
-        // defended += _.filter(tower.room.find(FIND_MY_CREEPS))
         var hostileAttackCreeps = tower.room.find(FIND_HOSTILE_CREEPS, { 
             filter: (c) => (c.getActiveBodyparts(ATTACK) > 0 || c.getActiveBodyparts(RANGED_ATTACK) > 0)
         });
@@ -48,7 +46,7 @@ var tower = {
                     } else {
                         var rampart = tower.room.find(FIND_MY_STRUCTURES, { filter: (s) => s.structureType === STRUCTURE_RAMPART })[0];
                         var maxHits;
-
+                        
                         if(rampart == undefined) {
                             maxHits = 300000;
                         } else {
@@ -64,9 +62,7 @@ var tower = {
                             || (s.structureType === STRUCTURE_WALL && s.hits < maxHits && s.hitsMax > 1)
                         });
                         
-                        //console.log(damagedStructures)
-                        
-                        if(damagedStructures.length > 0) {
+                        if(damagedStructures.length > 0 && tower.energy > (tower.energyCapacity * 0.66)) {
                             var target = damagedStructures[0];
                             
                             for(let s of damagedStructures) {
@@ -88,9 +84,8 @@ var tower = {
                                     }
                                 }
                             }
-                            if(tower.energy > (tower.energyCapacity * 0.66)) {
-                                tower.repair(target);
-                            }
+                            
+                            tower.repair(target);
                         }
                     }
                 }
