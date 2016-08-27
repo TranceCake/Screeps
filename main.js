@@ -37,6 +37,16 @@ module.exports.loop = function () {
                     }
                 });
             }
+
+            var hostiles = room.find(FIND_HOSTILE_CREEPS);
+            if(hostiles.length > 0 && room.memory.threatLevel === 0) {
+                room.memory.threatLevel = 1;
+                Game.notify('Hostile activity detected in: ' + room.name + '! \n' + 
+                            'Origin: ' + hostiles[0].owner.username + '\n' +
+                            'Amount: ' + hostiles.length);
+            } else if(hostiles.length === 0 && room.memory.threatLevel === 1 || room.memory.threatLevel === undefined) {
+                room.memory.threatLevel = 0;
+            }
             
         });
         
@@ -49,25 +59,39 @@ module.exports.loop = function () {
         // executing jobs for all creeps
         for(var name in Game.creeps) {
             var creep = Game.creeps[name];
-            if(!creep.spawning) {
+            if(creep.room.memory.threatLevel === 0) {
+                if(!creep.spawning) {
+                    if(creep.memory.role == 'miner') {
+                        roleMiner.run(creep);
+                    } else if(creep.memory.role == 'collector') {
+                        roleCollector.run(creep);
+                    } else if(creep.memory.role == 'builder') {
+                        roleBuilder.run(creep);
+                    } else if(creep.memory.role == 'upgrader') {
+                        roleUpgrader.run(creep);
+                    } else if(creep.memory.role == 'defender') {
+                        roleDefender.run(creep);
+                    } else if(creep.memory.role == 'linkFiller') {
+                        roleLinkFiller.run(creep);
+                    } else if(creep.memory.role == 'attacker') {
+                        roleAttacker.run(creep);
+                    } else if(creep.memory.role == 'claimer') {
+                        roleClaimer.run(creep);
+                    } else if(creep.memory.role == 'spawnBuilder') {
+                        roleSpawnBuilder.run(creep);
+                    } else if(creep.memory.role == 'drainer') {
+                        roleDrainer.run(creep);
+                    }
+                }
+            } else {
                 if(creep.memory.role == 'miner') {
                     roleMiner.run(creep);
                 } else if(creep.memory.role == 'collector') {
                     roleCollector.run(creep);
-                } else if(creep.memory.role == 'builder') {
-                    roleBuilder.run(creep);
-                } else if(creep.memory.role == 'upgrader') {
-                    roleUpgrader.run(creep);
                 } else if(creep.memory.role == 'defender') {
                     roleDefender.run(creep);
-                } else if(creep.memory.role == 'linkFiller') {
-                    roleLinkFiller.run(creep);
                 } else if(creep.memory.role == 'attacker') {
                     roleAttacker.run(creep);
-                } else if(creep.memory.role == 'claimer') {
-                    roleClaimer.run(creep);
-                } else if(creep.memory.role == 'spawnBuilder') {
-                    roleSpawnBuilder.run(creep);
                 } else if(creep.memory.role == 'drainer') {
                     roleDrainer.run(creep);
                 }

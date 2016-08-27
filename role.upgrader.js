@@ -12,14 +12,10 @@ var roleUpgrader = {
             if(link.length > 0) {
                 if(creep.withdraw(link[0], RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
                     result = creep.moveTo(link[0]);
-                    //console.log('wut');
                 } else {
-                    //console.log('in range');
                     result = creep.withdraw(link[0], RESOURCE_ENERGY);
-                    //console.log(result);
                 }
             } else {
-                //console.log('test')
                 result = this.moveToTarget(creep);
             }
         }

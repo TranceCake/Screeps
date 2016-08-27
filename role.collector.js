@@ -53,39 +53,53 @@ var roleCollector = {
     
     findTarget: function(creep) {
         if(creep.memory.working) {
-            var energyStorages = _.filter(creep.room.find(FIND_STRUCTURES), s => s.energy < s.energyCapacity && !(s.structureType === STRUCTURE_LINK || s.structureType === STRUCTURE_TOWER));
-            var priorityStorages = _.filter(energyStorages, (s) => s.structureType === STRUCTURE_SPAWN || s.structureType === STRUCTURE_EXTENSION);
-
-            if(priorityStorages.length > 0) {
-                var target = creep.pos.findClosestByPath(priorityStorages);
-            } else {
-                var creepsInRoom = _.filter(Game.creeps, c => c.room.name === creep.room.name);
-                var linkFillers =  _.filter(creepsInRoom, c => c.memory.role === 'linkFiller' && c.room.name === creep.room.name);
+            if(creep.room.memory.threatLevel === 0) {
+                var energyStorages = _.filter(creep.room.find(FIND_STRUCTURES), s => s.energy < s.energyCapacity && !(s.structureType === STRUCTURE_LINK || s.structureType === STRUCTURE_TOWER));
+                var priorityStorages = _.filter(energyStorages, (s) => s.structureType === STRUCTURE_SPAWN || s.structureType === STRUCTURE_EXTENSION);
                 
-                var lowCreeps = _.filter(creepsInRoom, c => ((c.memory.role === 'upgrader' && !linkFillers.length > 0) || (c.memory.role === 'builder' && c.memory.idle === false)) && c.carry.energy < (c.carryCapacity / 3));
-                var priorityCreeps = _.filter(lowCreeps, c => c.carry.energy === 0);
-            
-                if(priorityCreeps.length > 0) {
-                    var target = creep.pos.findClosestByPath(priorityCreeps);
+                if(priorityStorages.length > 0) {
+                    var target = creep.pos.findClosestByPath(priorityStorages);
                 } else {
-                    if(energyStorages.length > 0) {
-                        var target = creep.pos.findClosestByPath(energyStorages);
+                    var creepsInRoom = _.filter(Game.creeps, c => c.room.name === creep.room.name);
+                    var linkFillers =  _.filter(creepsInRoom, c => c.memory.role === 'linkFiller' && c.room.name === creep.room.name);
+                    
+                    var lowCreeps = _.filter(creepsInRoom, c => ((c.memory.role === 'upgrader' && !linkFillers.length > 0) || (c.memory.role === 'builder' && c.memory.idle === false)) && c.carry.energy < (c.carryCapacity / 3));
+                    var priorityCreeps = _.filter(lowCreeps, c => c.carry.energy === 0);
+                    
+                    if(priorityCreeps.length > 0) {
+                        var target = creep.pos.findClosestByPath(priorityCreeps);
                     } else {
-                        if(lowCreeps.length > 0) {
-                            var target = creep.pos.findClosestByPath(lowCreeps);
+                        if(energyStorages.length > 0) {
+                            var target = creep.pos.findClosestByPath(energyStorages);
                         } else {
-                            var towers = _.filter(creep.room.find(FIND_MY_STRUCTURES), s => s.structureType === STRUCTURE_TOWER && s.energy < s.energyCapacity * 0.8);
-                            
-                            if(towers.length > 0) {
-                                var target = creep.pos.findClosestByPath(towers);
+                            if(lowCreeps.length > 0) {
+                                var target = creep.pos.findClosestByPath(lowCreeps);
                             } else {
-                                var buffers = _.filter(creep.room.find(FIND_STRUCTURES), (s) => s.store && s.store[RESOURCE_ENERGY] < s.storeCapacity && s.structureType !== STRUCTURE_CONTAINER);
+                                var towers = _.filter(creep.room.find(FIND_MY_STRUCTURES), s => s.structureType === STRUCTURE_TOWER && s.energy < s.energyCapacity * 0.8);
                                 
-                                if(buffers.length > 0) {
-                                    var target = creep.pos.findClosestByPath(buffers);
+                                if(towers.length > 0) {
+                                    var target = creep.pos.findClosestByPath(towers);
+                                } else {
+                                    var buffers = _.filter(creep.room.find(FIND_STRUCTURES), (s) => s.store && s.store[RESOURCE_ENERGY] < s.storeCapacity && s.structureType !== STRUCTURE_CONTAINER);
+                                    
+                                    if(buffers.length > 0) {
+                                        var target = creep.pos.findClosestByPath(buffers);
+                                    }
                                 }
                             }
                         }
+                    }
+                }
+            } else {
+                var towers = _.filter(creep.room.find(FIND_MY_STRUCTURES), s => s.structureType === STRUCTURE_TOWER && s.energy < s.energyCapacity * 0.9);
+             
+                if(towers.length > 0) {
+                    var target = creep.pos.findClosestByPath(towers);
+                } else {
+                    var priorityStorages = _.filter(creep.room.find(FIND_MY_STRUCTURES), (s) => s.structureType === STRUCTURE_SPAWN || s.structureType === STRUCTURE_EXTENSION);
+                
+                    if(priorityStorages.length > 0) {
+                        var target = creep.pos.findClosestByPath(priorityStorages);
                     }
                 }
             }
@@ -98,8 +112,11 @@ var roleCollector = {
                 return ERR_NOT_FOUND;
             }
         } else {
-            var targets = _.filter(creep.room.find(FIND_DROPPED_ENERGY), e => e.amount >= (creep.carryCapacity) && e.resourceType === RESOURCE_ENERGY);
-            if(targets.length > 0) {
+            var targets = [];
+            if(creep.room.memory.threatLevel === 0)
+                targets = _.filter(creep.room.find(FIND_DROPPED_ENERGY), e => e.amount >= (creep.carryCapacity) && e.resourceType === RESOURCE_ENERGY);
+            
+            if(targets.length > 0 && creep.room.memory.threatLevel === 0) {
                 var target = targets[0];
                 var targetValue = target.amount / creep.pos.findPathTo(target).length;
                 
@@ -124,6 +141,8 @@ var roleCollector = {
                             targetValue = value;
                         }
                     }
+                } else if(creep.memory.threatLevel === 1) {
+                    var target = _.filter(creep.room.find(FIND_MY_STRUCTURES), s => s.structureType === STRUCTURE_STORAGE && s.store[RESOURCE_ENERGY] > 0);
                 }
             }
             
