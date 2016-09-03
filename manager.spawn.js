@@ -25,8 +25,8 @@ var spawnManager = {
         var extensions = _.filter(spawn.room.find(FIND_MY_STRUCTURES), s => s.structureType === STRUCTURE_EXTENSION);
         var minCollectors = sourceIds.length;
 
-        if(_.sum(_.filter(spawn.room.find(FIND_STRUCTURES), s => s.structureType === STRUCTURE_CONTAINER), c => c.store[RESOURCE_ENERGY]) > 1000)
-            minCollectors += 1;
+        var minedEnergy = _.sum(_.filter(spawn.room.find(FIND_STRUCTURES), s => s.structureType === STRUCTURE_CONTAINER), c => c.store[RESOURCE_ENERGY]) + _.sum(spawn.room.find(FIND_DROPPED_ENERGY), e => e.amount);
+        minCollectors += Math.floor(minedEnergy / 1000);
         
         var emptySources = [];
         
@@ -43,7 +43,10 @@ var spawnManager = {
         }
         
         var upgraders = _.filter(creepsInRoom, creep => creep.memory.role === 'upgrader');
-        var minUpgraders = 3;
+        var minUpgraders = 4;
+        
+        if(_.sum(_.filter(spawn.room.find(FIND_STRUCTURES), s => s.structureType === STRUCTURE_CONTAINER), c => c.store[RESOURCE_ENERGY]) > 1000)
+            minUpgraders += 1;
         
         var linkFillers =  _.filter(creepsInRoom, creep => creep.memory.role === 'linkFiller');
         if(links.length > 1 && spawn.room.storage !== undefined) {
@@ -71,7 +74,7 @@ var spawnManager = {
         
         var attackers = _.filter(Game.creeps, creep => creep.memory.role === 'attacker');
         if(Game.flags['Attack'] !== undefined) {
-            var minAttackers = 2;
+            var minAttackers = 3;
         } else {
             var minAttackers = 0;
         }
@@ -97,6 +100,13 @@ var spawnManager = {
             var minDrainers = 0;
         }
         
+        var tanks = _.filter(Game.creeps, creep => creep.memory.role === 'tank');
+        if(Game.flags['Tank'] !== undefined) {
+            var minTanks = 1;
+        } else {
+            var minTanks = 0;
+        }
+        
         // calculating max energy capacity and current reserves
         var capacity = spawn.room.energyCapacityAvailable;
         var available = spawn.room.energyAvailable;
@@ -116,18 +126,20 @@ var spawnManager = {
             } else if(upgraders.length < minUpgraders) {
                 result = this.spawnCreep(spawn, roleUpgrader.getBody(available), 'upgrader', { flag: spawn.room.name + '-Upgrade' });
             } else if(linkFillers.length < minLinkFillers) {
-                result = this.spawnCreep(spawn, [CARRY, CARRY, MOVE], 'linkFiller');
+                result = this.spawnCreep(spawn, [CARRY, CARRY, CARRY, MOVE], 'linkFiller');
             } else if(builders.length < minBuilders) {
                 result = this.spawnCreep(spawn, roleBuilder.getBody(available), 'builder', { idle: false });
             } else if(attackers.length < minAttackers) {
-                result = this.spawnCreep(spawn, [TOUGH, MOVE, TOUGH, MOVE, TOUGH, MOVE, TOUGH, MOVE, RANGED_ATTACK, MOVE, RANGED_ATTACK, MOVE, RANGED_ATTACK, MOVE, ATTACK, MOVE], 'attacker');
+                result = this.spawnCreep(spawn, [TOUGH, MOVE, TOUGH, MOVE, TOUGH, MOVE, TOUGH, MOVE, ATTACK, MOVE, ATTACK, MOVE, ATTACK, MOVE, ATTACK, MOVE, ATTACK, MOVE, ATTACK, MOVE], 'attacker');
             } else if(claimers.length < minClaimers) {
                 result = this.spawnCreep(spawn, [TOUGH, MOVE, TOUGH, MOVE, CLAIM, MOVE], 'claimer');
             } else if(spawnBuilders.length < minSpawnBuilders) {
                 result = this.spawnCreep(spawn, [WORK, MOVE, WORK, MOVE, WORK, MOVE, WORK, MOVE, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE], 'spawnBuilder', { working: false });
             } else if(drainers.length < minDrainers) {
-                result = this.spawnCreep(spawn, [TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, MOVE, MOVE, MOVE, MOVE, MOVE], 'drainer');//result = this.spawnCreep(spawn, [TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL], 'drainer');
-            }else {
+                result = this.spawnCreep(spawn, [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL], 'drainer');
+            } else if(tanks.length < minTanks) {
+                result = this.spawnCreep(spawn, [TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE], 'tank');
+            } else {
                 result = 'nothing to spawn..';
             }
         }

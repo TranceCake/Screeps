@@ -1,7 +1,7 @@
 var tower = {
     run: function(tower) {
         var hostileAttackCreeps = tower.room.find(FIND_HOSTILE_CREEPS, { 
-            filter: (c) => (c.getActiveBodyparts(ATTACK) > 0 || c.getActiveBodyparts(RANGED_ATTACK) > 0)
+            filter: (c) => (c.getActiveBodyparts(ATTACK) > 0 || c.getActiveBodyparts(RANGED_ATTACK) > 0) && c.owner.username !== 'Remco'
         });
         var targets = this.getTargets(hostileAttackCreeps, tower , 4);
         
@@ -9,7 +9,7 @@ var tower = {
             var target = tower.pos.findClosestByRange(hostileAttackCreeps);
             tower.attack(target);
         } else {
-            var hostileCreeps = tower.room.find(FIND_HOSTILE_CREEPS);
+            var hostileCreeps = _.filter(tower.room.find(FIND_HOSTILE_CREEPS), c => c.owner.username !== 'Remco');
             var targets = this.getTargets(hostileCreeps, tower, 4);
             
             if(targets.length > 0) {
@@ -48,13 +48,13 @@ var tower = {
                         var maxHits;
                         
                         if(rampart == undefined) {
-                            maxHits = 300000;
+                            maxHits = 250000;
                         } else {
                             maxHits = rampart.hitsMax;
                         }
                         
-                        if(maxHits > tower.room.controller.level * 300000)
-                            maxHits = tower.room.controller.level * 300000;
+                        if(maxHits > tower.room.controller.level * 250000)
+                            maxHits = tower.room.controller.level * 250000;
                         
                         var damagedStructures = tower.room.find(FIND_STRUCTURES, {
                             filter: (s) => (s.structureType === STRUCTURE_RAMPART && s.hits < maxHits) 
@@ -98,9 +98,16 @@ var tower = {
         
         for(let h of hCreeps) {
             var x = h.pos.x;
-            x - rng < 0 ? 0 : x + rng > 49 ? 49 : x;
+            var xMin = x - rng;
+            var xMax = x + rng;
+            xMin < 0 ? 0 : xMin;
+            xMax > 49 ? 49 : xMax;
+            
             var y = h.pos.y;
-            y - rng < 0 ? 0 : y + rng > 49 ? 49 : y;
+            var yMin = y - rng;
+            var yMax = y + rng;
+            yMin < 0 ? 0 : yMin;
+            yMax > 49 ? 49 : yMax;
             
             var allCreeps = tower.room.lookForAtArea(LOOK_CREEPS, (y - rng), (x - rng), (y + rng), (x + rng), true);
             var myCreeps = _.filter(allCreeps, c => c.creep.my);

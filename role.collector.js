@@ -114,7 +114,7 @@ var roleCollector = {
         } else {
             var targets = [];
             if(creep.room.memory.threatLevel === 0)
-                targets = _.filter(creep.room.find(FIND_DROPPED_ENERGY), e => e.amount >= (creep.carryCapacity) && e.resourceType === RESOURCE_ENERGY);
+                targets = _.filter(creep.room.find(FIND_DROPPED_ENERGY), e => e.amount >= (creep.carryCapacity * 0.66) || e.amount >= creep.carryCapacity - _.sum(creep.carry) && e.resourceType === RESOURCE_ENERGY);
             
             if(targets.length > 0 && creep.room.memory.threatLevel === 0) {
                 var target = targets[0];
@@ -190,7 +190,7 @@ var roleCollector = {
         var result;
         if(creep.memory.working) {
             result = creep.transfer(target, RESOURCE_ENERGY);
-            this.findTarget(creep);
+            creep.memory.target = null;
             
             return result;
         } else {

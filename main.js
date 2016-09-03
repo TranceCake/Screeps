@@ -13,6 +13,7 @@ var roleAttacker = require('role.attacker');
 var roleClaimer = require('role.claimer');
 var roleSpawnBuilder = require('role.spawnBuilder');
 var roleDrainer = require('role.drainer');
+var roleTank = require('role.tank');
 
 //profiler.enable();
 
@@ -43,7 +44,7 @@ module.exports.loop = function () {
                 room.memory.threatLevel = 1;
                 Game.notify('Hostile activity detected in: ' + room.name + '! \n' + 
                             'Origin: ' + hostiles[0].owner.username + '\n' +
-                            'Amount: ' + hostiles.length);
+                            'Amount: ' + hostiles.length, 0);
             } else if(hostiles.length === 0 && room.memory.threatLevel === 1 || room.memory.threatLevel === undefined) {
                 room.memory.threatLevel = 0;
             }
@@ -81,6 +82,8 @@ module.exports.loop = function () {
                         roleSpawnBuilder.run(creep);
                     } else if(creep.memory.role == 'drainer') {
                         roleDrainer.run(creep);
+                    } else if(creep.memory.role == 'tank') {
+                        roleTank.run(creep);
                     }
                 }
             } else {

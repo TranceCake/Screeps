@@ -23,17 +23,13 @@ var roleDrainer = {
                         if(creep.heal(target) === ERR_NOT_IN_RANGE) {
                             result = creep.moveTo(target);
                         } else {
-                            result = creep.heal(target);
                             if(!creep.pos.isNearTo(target)) {
                                 creep.moveTo(target);
-                            } else {
-                                creep.moveTo(position);
                             }
+                            result = creep.heal(target);
                         }
                     } else {
-                        
-                        if(position !== undefined)
-                            result = creep.moveTo(position);
+                        result = creep.moveTo(marker);
                     }
                 } else {
                     result = creep.moveTo(marker);

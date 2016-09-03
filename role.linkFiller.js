@@ -10,7 +10,7 @@ var roleLinkFiller = {
             } else if(!creep.pos.isNearTo(link[0])) {
                 result = creep.moveTo(link[0]);
             } else {
-                if(creep.carry.energy == 0 && storage.store[RESOURCE_ENERGY] > 0) {
+                if((creep.carry.energy == 0 && storage.store[RESOURCE_ENERGY] > 15000) || (creep.carry.energy == 0 && creep.room.controller.ticksToDowngrade < 2500)) {
                     result = creep.withdraw(storage, RESOURCE_ENERGY);
                 } else {
                     result = creep.transfer(link[0], RESOURCE_ENERGY);
