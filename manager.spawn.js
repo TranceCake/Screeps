@@ -12,22 +12,16 @@ var spawnManager = {
             return;
         }
         
+        //===== INITIAL VARIABLES =====\\
         var memSources = spawn.room.memory.sources;
         var sourceIds = Object.keys(memSources);
-        var links = _.filter(spawn.room.find(FIND_MY_STRUCTURES), s => s.structureType === STRUCTURE_LINK);
-        
         var creepsInRoom = _.filter(Game.creeps, creep => creep.room.name === spawn.room.name);
+        var capacity = spawn.room.energyCapacityAvailable;
+        var available = spawn.room.energyAvailable;
         
+        //===== MINER PREP CODE
         var miners = _.filter(creepsInRoom, creep => creep.memory.role === 'miner');
         var miningCreeps = _.filter(miners, miner => miner.memory.sourceId !== undefined);
-        
-        var collectors = _.filter(creepsInRoom, creep => creep.memory.role === 'collector');
-        var extensions = _.filter(spawn.room.find(FIND_MY_STRUCTURES), s => s.structureType === STRUCTURE_EXTENSION);
-        var minCollectors = sourceIds.length;
-
-        var minedEnergy = _.sum(_.filter(spawn.room.find(FIND_STRUCTURES), s => s.structureType === STRUCTURE_CONTAINER), c => c.store[RESOURCE_ENERGY]) + _.sum(spawn.room.find(FIND_DROPPED_ENERGY), e => e.amount);
-        minCollectors += Math.floor(minedEnergy / 1000);
-        
         var emptySources = [];
         
         if(miningCreeps.length > 0) {
@@ -42,109 +36,118 @@ var spawnManager = {
             emptySources = sourceIds;
         }
         
+        //===== STARTUP/RECOVERY MINER
+        if(miners.length === 0)
+            return this.spawnCreep(spawn, roleMiner.getBody(available), 'miner', { sourceId: emptySources[0] });
+        
+        //===== STARTUP/RECOVERY COLLECTOR
+        var collectors = _.filter(creepsInRoom, creep => creep.memory.role === 'collector');
+        var minCollectors = sourceIds.length;
+        
+        var minedEnergy = _.sum(_.filter(spawn.room.find(FIND_STRUCTURES), s => s.structureType === STRUCTURE_CONTAINER), c => c.store[RESOURCE_ENERGY]) + _.sum(spawn.room.find(FIND_DROPPED_ENERGY), e => e.amount);
+        minCollectors += Math.floor(minedEnergy / 1000);
+        
+        if(collectors.length === 0 && miners.length === 1)
+            return this.spawnCreep(spawn, roleCollector.getBody(available), 'collector', { working: false });
+        
+        //===== DEFENDERS
+        if(spawn.room.find(FIND_HOSTILE_CREEPS).length > 0) {
+            var defenders = _.filter(creepsInRoom, creep => creep.memory.role === 'defender');
+            var minDefenders = 0;//var minDefenders = spawn.room.find(FIND_HOSTILE_CREEPS).length + 1;
+            
+            if(defenders.length < minDefenders) {
+                return this.spawnCreep(spawn, roleDefender.getBody(available), 'defender');
+            }
+        }
+        
+        //===== MINERS
+        if(emptySources.length > 0)
+            return this.spawnCreep(spawn, roleMiner.getBody(available), 'miner', { sourceId: emptySources[0] });
+        
+        //===== COLLECTORS
+        if(collectors.length < minCollectors)
+            return this.spawnCreep(spawn, roleCollector.getBody(available), 'collector', { working: false });
+        
+        //===== UPGRADERS
         var upgraders = _.filter(creepsInRoom, creep => creep.memory.role === 'upgrader');
         var minUpgraders = 4;
         
         if(_.sum(_.filter(spawn.room.find(FIND_STRUCTURES), s => s.structureType === STRUCTURE_CONTAINER), c => c.store[RESOURCE_ENERGY]) > 1000)
             minUpgraders += 1;
         
+        if(upgraders.length < minUpgraders && spawn.room.memory.threatLevel === 0)
+            return this.spawnCreep(spawn, roleUpgrader.getBody(available), 'upgrader', { flag: spawn.room.name + '-Upgrade' });
+        
+        //===== LINKFILLERS
+        var links = _.filter(spawn.room.find(FIND_MY_STRUCTURES), s => s.structureType === STRUCTURE_LINK);
         var linkFillers =  _.filter(creepsInRoom, creep => creep.memory.role === 'linkFiller');
+        
         if(links.length > 1 && spawn.room.storage !== undefined) {
             var minLinkFillers = 1;
-        } else {
-            var minLinkFillers = 0;
+            
+            if(linkFillers.length < minLinkFillers  && spawn.room.memory.threatLevel === 0)
+                return this.spawnCreep(spawn, [CARRY, CARRY, CARRY, MOVE], 'linkFiller');
         }
         
-        var builders = _.filter(creepsInRoom, creep => creep.memory.role === 'builder');
-        if(spawn.room.find(FIND_CONSTRUCTION_SITES).length > 10) {
-            var minBuilders = 2;
-        } else if(spawn.room.find(FIND_CONSTRUCTION_SITES).length > 0) {
+        //===== BUILDERS
+        if(spawn.room.find(FIND_CONSTRUCTION_SITES).length > 0) {
             var minBuilders = 1;
-        } else {
-            var minBuilders = 0;
+            var builders = _.filter(creepsInRoom, creep => creep.memory.role === 'builder');
+            var sites = spawn.room.find(FIND_CONSTRUCTION_SITES);
+            
+            if(sites.length > 5)
+                minBuilders += Math.floor(sites.length / 5);
+            
+            if(builders.length < minBuilders && spawn.room.memory.threatLevel === 0)
+                return this.spawnCreep(spawn, roleBuilder.getBody(available), 'builder', { idle: false });
         }
         
-        var defenders = _.filter(creepsInRoom, creep => creep.memory.role === 'defender');
-        // if there are hostile creeps in the room try outmatching their numbers by spawning more defenders
-        if(spawn.room.find(FIND_HOSTILE_CREEPS).length > 0) {
-            var minDefenders = 0;//var minDefenders = spawn.room.find(FIND_HOSTILE_CREEPS).length + 1;
-        } else {
-            var minDefenders = 0;
-        }
-        
-        var attackers = _.filter(Game.creeps, creep => creep.memory.role === 'attacker');
+        //===== ATTACKERS
         if(Game.flags['Attack'] !== undefined) {
+            var attackers = _.filter(Game.creeps, creep => creep.memory.role === 'attacker');
             var minAttackers = 3;
-        } else {
-            var minAttackers = 0;
+            
+            if(attackers.length < minAttackers)
+                return this.spawnCreep(spawn, [TOUGH, MOVE, TOUGH, MOVE, TOUGH, MOVE, TOUGH, MOVE, ATTACK, MOVE, ATTACK, MOVE, ATTACK, MOVE, ATTACK, MOVE, ATTACK, MOVE, ATTACK, MOVE], 'attacker');
         }
         
-        var claimers = _.filter(Game.creeps, creep => creep.memory.role === 'claimer');
+        //===== CLAIMERS
         if(Game.flags['Claim'] !== undefined) {
+            var claimers = _.filter(Game.creeps, creep => creep.memory.role === 'claimer');
             var minClaimers = 1;
-        } else {
-            var minClaimers = 0;
+            
+            if(claimers.length < minClaimers && spawn.room.memory.threatLevel === 0)
+                return this.spawnCreep(spawn, [TOUGH, MOVE, TOUGH, MOVE, CLAIM, MOVE], 'claimer');
         }
         
-        var spawnBuilders = _.filter(Game.creeps, creep => creep.memory.role === 'spawnBuilder');
+        //===== SPAWNBUILDERS
         if(Game.flags['Spawn'] !== undefined) {
+            var spawnBuilders = _.filter(Game.creeps, creep => creep.memory.role === 'spawnBuilder');
             var minSpawnBuilders = 2;
-        } else {
-            var minSpawnBuilders = 0;
+            
+            if(spawnBuilders.length < minSpawnBuilders && spawn.room.memory.threatLevel === 0)
+                return this.spawnCreep(spawn, [WORK, MOVE, WORK, MOVE, WORK, MOVE, WORK, MOVE, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE], 'spawnBuilder', { working: false });
         }
         
-        var drainers = _.filter(Game.creeps, creep => creep.memory.role === 'drainer');
+        //===== DRAINERS
         if(Game.flags['Drain'] !== undefined) {
+            var drainers = _.filter(Game.creeps, creep => creep.memory.role === 'drainer');
             var minDrainers = 4;
-        } else {
-            var minDrainers = 0;
+            
+            if(drainers.length < minDrainers)
+                return this.spawnCreep(spawn, [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL], 'drainer');
         }
         
-        var tanks = _.filter(Game.creeps, creep => creep.memory.role === 'tank');
+        //===== TANKS
         if(Game.flags['Tank'] !== undefined) {
+            var tanks = _.filter(Game.creeps, creep => creep.memory.role === 'tank');
             var minTanks = 1;
-        } else {
-            var minTanks = 0;
+            
+            if(tanks.length < minTanks)
+                return this.spawnCreep(spawn, [TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE], 'tank');
         }
         
-        // calculating max energy capacity and current reserves
-        var capacity = spawn.room.energyCapacityAvailable;
-        var available = spawn.room.energyAvailable;
-        var result;
-        
-        if(miners.length == 0) {
-            result = this.spawnCreep(spawn, roleMiner.getBody(available), 'miner', { sourceId: emptySources[0] });
-        } else if(collectors.length == 0 && miners.length == 1) {
-            result = this.spawnCreep(spawn, roleCollector.getBody(available), 'collector', { working: false });
-        } else {
-            if(defenders.length < minDefenders) {
-                result = this.spawnCreep(spawn, roleDefender.getBody(available), 'defender');
-            } else if(emptySources.length > 0) {
-                result = this.spawnCreep(spawn, roleMiner.getBody(available), 'miner', { sourceId: emptySources[0] });
-            } else if(collectors.length < minCollectors) {
-                result = this.spawnCreep(spawn, roleCollector.getBody(available), 'collector', { working: false });
-            } else if(upgraders.length < minUpgraders) {
-                result = this.spawnCreep(spawn, roleUpgrader.getBody(available), 'upgrader', { flag: spawn.room.name + '-Upgrade' });
-            } else if(linkFillers.length < minLinkFillers) {
-                result = this.spawnCreep(spawn, [CARRY, CARRY, CARRY, MOVE], 'linkFiller');
-            } else if(builders.length < minBuilders) {
-                result = this.spawnCreep(spawn, roleBuilder.getBody(available), 'builder', { idle: false });
-            } else if(attackers.length < minAttackers) {
-                result = this.spawnCreep(spawn, [TOUGH, MOVE, TOUGH, MOVE, TOUGH, MOVE, TOUGH, MOVE, ATTACK, MOVE, ATTACK, MOVE, ATTACK, MOVE, ATTACK, MOVE, ATTACK, MOVE, ATTACK, MOVE], 'attacker');
-            } else if(claimers.length < minClaimers) {
-                result = this.spawnCreep(spawn, [TOUGH, MOVE, TOUGH, MOVE, CLAIM, MOVE], 'claimer');
-            } else if(spawnBuilders.length < minSpawnBuilders) {
-                result = this.spawnCreep(spawn, [WORK, MOVE, WORK, MOVE, WORK, MOVE, WORK, MOVE, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE], 'spawnBuilder', { working: false });
-            } else if(drainers.length < minDrainers) {
-                result = this.spawnCreep(spawn, [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL], 'drainer');
-            } else if(tanks.length < minTanks) {
-                result = this.spawnCreep(spawn, [TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE], 'tank');
-            } else {
-                result = 'nothing to spawn..';
-            }
-        }
-        
-        return result;
+        return 'nothing to spawn..';
 	},
 	
 	spawnCreep: function(spawn, body, role, mem = {}) {

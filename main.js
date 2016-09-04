@@ -97,6 +97,8 @@ module.exports.loop = function () {
                     roleAttacker.run(creep);
                 } else if(creep.memory.role == 'drainer') {
                     roleDrainer.run(creep);
+                } else if(creep.memory.role == 'tank') {
+                    roleTank.run(creep);
                 }
             }
         }
