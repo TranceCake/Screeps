@@ -109,12 +109,12 @@ var tower = {
             yMin < 0 ? 0 : yMin;
             yMax > 49 ? 49 : yMax;
             
-            var allCreeps = tower.room.lookForAtArea(LOOK_CREEPS, (y - rng), (x - rng), (y + rng), (x + rng), true);
+            var allCreeps = tower.room.lookForAtArea(LOOK_CREEPS, (yMin), (xMin), (yMax), (xMax), true);
             var myCreeps = _.filter(allCreeps, c => c.creep.my);
             if(myCreeps.length > 0) {
                 targets.push(h);
             } else {
-                var allStructures = tower.room.lookForAtArea(LOOK_STRUCTURES, (y - rng), (x - rng), (y + rng), (x + rng), true);
+                var allStructures = tower.room.lookForAtArea(LOOK_STRUCTURES, (yMin), (xMin), (yMax), (xMax), true);
                 var defendedStructures = _.filter(allStructures, s => s.structure.structureType !== STRUCTURE_ROAD);
                 if(defendedStructures.length > 0) {
                     targets.push(h);

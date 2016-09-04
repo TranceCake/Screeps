@@ -8,9 +8,12 @@ var roleTank = {
         if(hold === undefined) {
             
             if(marker !== undefined) {
-                if(!creep.pos.isNearTo(marker)) {
+                if(!creep.pos.inRangeTo(marker, 0)) {
+                    console.log('test');
                     result = creep.moveTo(marker);
                 }
+            } else {
+                console.log('test2')
             }
         } else {
             if(!creep.pos.isNearTo(hold)) {
