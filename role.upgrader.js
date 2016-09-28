@@ -3,7 +3,7 @@ var roleUpgrader = {
     /** @param {Creep} creep **/
     run: function(creep) {
         var result;
-
+        
         if(creep.carry.energy > 0) {
             result = this.moveToTarget(creep);
         } else {
@@ -31,12 +31,22 @@ var roleUpgrader = {
         var cost = _.sum([BODYPART_COST[MOVE], BODYPART_COST[CARRY], BODYPART_COST[WORK]]);
 
         while (energy >= cost) {
-            if(carry.length < 6) {
+            if(carry.length < 2) {
                 energy = this.addPart(energy, carry, CARRY);
                 energy = this.addPart(energy, move, MOVE);
                 energy = this.addPart(energy, work, WORK);
+            } else if(move.length < 13) {
+                if(move.length === 2) {
+                    cost = _.sum([BODYPART_COST[MOVE], BODYPART_COST[WORK] * 2]);
+                    if(cost > energy)
+                        break;
+                }
+                
+                energy = this.addPart(energy, move, MOVE);
+                energy = this.addPart(energy, work, WORK);
+                energy = this.addPart(energy, work, WORK);
             } else {
-                break;
+               break; 
             }
         }
         return work.concat(carry).concat(move);

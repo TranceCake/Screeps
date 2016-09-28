@@ -3,15 +3,19 @@ var roleMiner = {
     /** @param {Creep} creep **/
     run: function(creep) {
         var result;
-        var source = Game.getObjectById([creep.memory.sourceId]);
-        //console.log([creep.memory.sourceId]);
-            
+        var source = Game.getObjectById(creep.memory.sourceId);
         if(!creep.pos.isNearTo(source)) {
-            result = creep.moveTo(source);
+            var sourceContainer = _.filter(source.room.find(FIND_STRUCTURES), s => s.structureType === STRUCTURE_CONTAINER && s.pos.isNearTo(source))[0];
+        
+            if(!!sourceContainer && !creep.pos.isEqualTo(sourceContainer)) {
+                result = creep.moveTo(sourceContainer);
+            } else {
+                result = creep.moveTo(source);
+            }
         } else {
             result = creep.harvest(source);
         }   
-
+        
         creep.memory.result = result;
     },
     

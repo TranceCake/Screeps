@@ -13,7 +13,7 @@ var roleAttacker = {
                         var targets = creep.room.lookAt(priority.pos);
                         var target = _.filter(targets, t => t.type === 'structure')[0];
                         if(target !== undefined) {
-                            if(creep.rangedAttack(target.structure) === ERR_NOT_IN_RANGE || creep.attack(target.structure) === ERR_NOT_IN_RANGE) {
+                            if(creep.attack(target.structure) === ERR_NOT_IN_RANGE) {
                                 result = creep.moveTo(target.structure);
                                 if(result === ERR_NO_PATH) {
                                     var path = this.getPath(creep, target.structure);
@@ -30,10 +30,10 @@ var roleAttacker = {
                     } else {
                         var hostileCreeps = _.filter(creep.room.find(FIND_HOSTILE_CREEPS), c => c.owner.username !== 'Remco');
                         var hostileAttackCreeps = _.filter(creep.room.find(FIND_HOSTILE_CREEPS), c => (c.getActiveBodyparts(ATTACK) > 0 || c.getActiveBodyparts(RANGED_ATTACK) > 0) && c.owner.username !== 'Remco');
-                        var hostileStructures = _.filter(creep.room.find(FIND_HOSTILE_STRUCTURES), s => s.structureType !== STRUCTURE_CONTROLLER);
+                        var hostileStructures = _.filter(creep.room.find(FIND_HOSTILE_STRUCTURES), s => s.structureType !== STRUCTURE_CONTROLLER && s.room.lookForAt(LOOK_FLAGS, s.pos.x, s.pos.y).length === 0);
                         
                         if(hostileAttackCreeps.length > 0) {
-                            if(creep.rangedAttack(hostileAttackCreeps[0]) === ERR_NOT_IN_RANGE || creep.attack(hostileAttackCreeps[0]) === ERR_NOT_IN_RANGE) {
+                            if(creep.attack(hostileAttackCreeps[0]) === ERR_NOT_IN_RANGE) {
                                 result = creep.moveTo(hostileAttackCreeps[0]);
                                 if(result === ERR_NO_PATH) {
                                     var path = this.getPath(creep, hostileAttackCreeps[0]);
@@ -41,7 +41,7 @@ var roleAttacker = {
                                 }
                             } else {
                                 var nearbyCreeps = creep.room.lookForAtArea(LOOK_CREEPS, creep.pos.y - 3, creep.pos.x - 3, creep.pos.y + 3, creep.pos.x + 3, true);
-                                var nearbyHostiles;
+                                var nearbyHostiles = [];
                                 
                                 for(let creep of nearbyCreeps) {
                                     nearbyHostiles.push(creep.creep);
@@ -58,7 +58,7 @@ var roleAttacker = {
                                 }
                             }
                         } else if(hostileCreeps.length > 0) {
-                            if(creep.rangedAttack(hostileCreeps[0]) === ERR_NOT_IN_RANGE) {
+                            if(creep.attack(hostileCreeps[0]) === ERR_NOT_IN_RANGE) {
                                 result = creep.moveTo(hostileCreeps[0]);
                                 if(result === ERR_NO_PATH) {
                                     var path = creep.room.findPath(creep.pos, hostileCreeps[0].pos, {ignoreDestructibleStructures: true});
@@ -69,7 +69,7 @@ var roleAttacker = {
                                 result = creep.rangedAttack(hostileCreeps[0]);
                             }
                         } else if(hostileStructures.length > 0) {
-                            if(creep.rangedAttack(hostileStructures[0]) === ERR_NOT_IN_RANGE || creep.attack(hostileStructures[0]) === ERR_NOT_IN_RANGE) {
+                            if(creep.attack(hostileStructures[0]) === ERR_NOT_IN_RANGE) {
                                 result = creep.moveTo(hostileStructures[0]);
                                 if(result === ERR_NO_PATH) {
                                     var path = this.getPath(creep, hostileStructures[0]);

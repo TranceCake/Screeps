@@ -4,12 +4,24 @@ var tower = {
             filter: (c) => (c.getActiveBodyparts(ATTACK) > 0 || c.getActiveBodyparts(RANGED_ATTACK) > 0) && c.owner.username !== 'Remco'
         });
         var targets = this.getTargets(hostileAttackCreeps, tower , 4);
+        var healers = _.filter(tower.room.find(FIND_HOSTILE_CREEPS), c => c.getActiveBodyparts(HEAL) > 0);
+        
+        for(let target of targets) {
+            for(let healer of healers) {
+                if(target.id !== healer.id && target.pos.isNearTo(healer)) {
+                    
+                    var index = targets.indexOf(target);
+                    if(index != -1)
+                        targets.splice(index, 1);
+                }
+            }
+        }
         
         if(targets.length > 0) {
-            var target = tower.pos.findClosestByRange(hostileAttackCreeps);
+            var target = tower.pos.findClosestByRange(targets);
             tower.attack(target);
         } else {
-            var hostileCreeps = _.filter(tower.room.find(FIND_HOSTILE_CREEPS), c => c.owner.username !== 'Remco');
+            var hostileCreeps = _.filter(tower.room.find(FIND_HOSTILE_CREEPS), c => c.owner.username !== 'Remco' && !(c.getActiveBodyparts(ATTACK) > 0 || c.getActiveBodyparts(RANGED_ATTACK) > 0));
             var targets = this.getTargets(hostileCreeps, tower, 4);
             
             if(targets.length > 0) {
@@ -100,14 +112,22 @@ var tower = {
             var x = h.pos.x;
             var xMin = x - rng;
             var xMax = x + rng;
-            xMin < 0 ? 0 : xMin;
-            xMax > 49 ? 49 : xMax;
+            
+            if(xMin < 0)
+                xMin = 0;
+            
+            if(xMax > 49)
+                xMax = 49;
             
             var y = h.pos.y;
             var yMin = y - rng;
             var yMax = y + rng;
-            yMin < 0 ? 0 : yMin;
-            yMax > 49 ? 49 : yMax;
+            
+            if(yMin < 0)
+                yMin = 0;
+            
+            if(yMax > 49)
+                yMax = 49;
             
             var allCreeps = tower.room.lookForAtArea(LOOK_CREEPS, (yMin), (xMin), (yMax), (xMax), true);
             var myCreeps = _.filter(allCreeps, c => c.creep.my);

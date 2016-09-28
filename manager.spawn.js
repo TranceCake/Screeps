@@ -16,6 +16,7 @@ var spawnManager = {
         var memSources = spawn.room.memory.sources;
         var sourceIds = Object.keys(memSources);
         var creepsInRoom = _.filter(Game.creeps, creep => creep.room.name === spawn.room.name);
+        var localStructures = spawn.room.find(FIND_STRUCTURES);
         var capacity = spawn.room.energyCapacityAvailable;
         var available = spawn.room.energyAvailable;
         
@@ -42,9 +43,9 @@ var spawnManager = {
         
         //===== STARTUP/RECOVERY COLLECTOR
         var collectors = _.filter(creepsInRoom, creep => creep.memory.role === 'collector');
-        var minCollectors = sourceIds.length;
+        var minCollectors = Object.keys(memSources).length;
         
-        var minedEnergy = _.sum(_.filter(spawn.room.find(FIND_STRUCTURES), s => s.structureType === STRUCTURE_CONTAINER), c => c.store[RESOURCE_ENERGY]) + _.sum(spawn.room.find(FIND_DROPPED_ENERGY), e => e.amount);
+        var minedEnergy = _.sum(_.filter(localStructures, s => s.structureType === STRUCTURE_CONTAINER), c => c.store[RESOURCE_ENERGY]) + _.sum(spawn.room.find(FIND_DROPPED_ENERGY), e => e.amount);
         minCollectors += Math.floor(minedEnergy / 1000);
         
         if(collectors.length === 0 && miners.length === 1)
@@ -61,8 +62,11 @@ var spawnManager = {
         }
         
         //===== MINERS
-        if(emptySources.length > 0)
+        if(emptySources.length > 0 && capacity < 550) {
             return this.spawnCreep(spawn, roleMiner.getBody(available), 'miner', { sourceId: emptySources[0] });
+        } else if(emptySources.length > 0) {
+            return this.spawnCreep(spawn, roleMiner.getBody(550), 'miner', { sourceId: emptySources[0] });
+        }
         
         //===== COLLECTORS
         if(collectors.length < minCollectors)
@@ -70,10 +74,7 @@ var spawnManager = {
         
         //===== UPGRADERS
         var upgraders = _.filter(creepsInRoom, creep => creep.memory.role === 'upgrader');
-        var minUpgraders = 4;
-        
-        if(_.sum(_.filter(spawn.room.find(FIND_STRUCTURES), s => s.structureType === STRUCTURE_CONTAINER), c => c.store[RESOURCE_ENERGY]) > 1000)
-            minUpgraders += 1;
+        var minUpgraders = Math.round((12/spawn.room.controller.level)+0.1);
         
         if(upgraders.length < minUpgraders && spawn.room.memory.threatLevel === 0)
             return this.spawnCreep(spawn, roleUpgrader.getBody(available), 'upgrader', { flag: spawn.room.name + '-Upgrade' });
@@ -95,8 +96,7 @@ var spawnManager = {
             var builders = _.filter(creepsInRoom, creep => creep.memory.role === 'builder');
             var sites = spawn.room.find(FIND_CONSTRUCTION_SITES);
             
-            if(sites.length > 5)
-                minBuilders += Math.floor(sites.length / 5);
+            minBuilders += Math.floor(sites.length / 10);
             
             if(builders.length < minBuilders && spawn.room.memory.threatLevel === 0)
                 return this.spawnCreep(spawn, roleBuilder.getBody(available), 'builder', { idle: false });
@@ -132,10 +132,10 @@ var spawnManager = {
         //===== DRAINERS
         if(Game.flags['Drain'] !== undefined) {
             var drainers = _.filter(Game.creeps, creep => creep.memory.role === 'drainer');
-            var minDrainers = 4;
+            var minDrainers = 2;
             
             if(drainers.length < minDrainers)
-                return this.spawnCreep(spawn, [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL], 'drainer');
+                return this.spawnCreep(spawn, [TOUGH, TOUGH, TOUGH, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE], 'drainer');
         }
         
         //===== TANKS
@@ -145,6 +145,15 @@ var spawnManager = {
             
             if(tanks.length < minTanks)
                 return this.spawnCreep(spawn, [TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE], 'tank');
+        }
+        
+        //===== RAIDERS
+        if(Game.flags['Raid'] !== undefined) {
+            var raiders = _.filter(Game.creeps, creep => creep.memory.role === 'raider');
+            var minRaiders = 6;
+            
+            if(raiders.length < minRaiders)
+                return this.spawnCreep(spawn, [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY], 'raider', { working: true, waypoint: 1 });
         }
         
         return 'nothing to spawn..';

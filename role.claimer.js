@@ -17,6 +17,7 @@ var roleClaimer = {
                 result = creep.moveTo(marker);
             }
         }
+        creep.memory.result = result;
     }
 };
 

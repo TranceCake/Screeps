@@ -11,7 +11,7 @@ var roleDrainer = {
             if(marker !== undefined) {
                 
                 if(marker.room !== undefined && marker.room.name === creep.room.name) {
-                    var creeps = _.filter(Game.creeps, c => c.room.name === creep.room.name);
+                    var creeps = _.filter(creep.room.find(FIND_MY_CREEPS), c => c.room.name === creep.room.name);
                     
                     if(creeps.length > 0) {
                         var target = creeps[0];
@@ -27,6 +27,7 @@ var roleDrainer = {
                                 creep.moveTo(target);
                             }
                             result = creep.heal(target);
+                            creep.moveTo(marker);
                         }
                     } else {
                         result = creep.moveTo(marker);

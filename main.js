@@ -1,4 +1,5 @@
 const profiler = require('profiler');
+global.log = require('prototype.log');
 
 var roleMiner = require('role.miner');
 var roleCollector = require('role.collector');
@@ -14,8 +15,9 @@ var roleClaimer = require('role.claimer');
 var roleSpawnBuilder = require('role.spawnBuilder');
 var roleDrainer = require('role.drainer');
 var roleTank = require('role.tank');
+var roleRaider = require('role.raider');
 
-//profiler.enable();
+profiler.enable();
 
 module.exports.loop = function () {
     
@@ -42,9 +44,16 @@ module.exports.loop = function () {
             var hostiles = room.find(FIND_HOSTILE_CREEPS);
             if(hostiles.length > 0 && room.memory.threatLevel === 0) {
                 room.memory.threatLevel = 1;
-                Game.notify('Hostile activity detected in: ' + room.name + '! \n' + 
-                            'Origin: ' + hostiles[0].owner.username + '\n' +
-                            'Amount: ' + hostiles.length, 0);
+                if(!(hostiles[0].owner.username === 'Invader' || hostiles[0].owner.username === 'Source Keeper')) {
+                    Game.notify('Hostile activity detected in: ' + room.name + '! \n' + 
+                                'Origin: ' + hostiles[0].owner.username + '\n' +
+                                'Amount: ' + hostiles.length, 0);
+                }
+                
+                log.warn('Hostile activity detected in: ' + room.name + '! \n' + 
+                                'Origin: ' + hostiles[0].owner.username + '\n' +
+                                'Amount: ' + hostiles.length, 0);
+                
             } else if(hostiles.length === 0 && room.memory.threatLevel === 1 || room.memory.threatLevel === undefined) {
                 room.memory.threatLevel = 0;
             }
@@ -60,7 +69,7 @@ module.exports.loop = function () {
         // executing jobs for all creeps
         for(var name in Game.creeps) {
             var creep = Game.creeps[name];
-            if(creep.room.memory.threatLevel === 0) {
+            if(creep.room.memory.threatLevel === 0 || !creep.room.controller || !creep.room.controller.owner || ((creep.room.controller && creep.room.controller.owner && creep.room.controller.owner.username !== 'TranceCake') && creep.room.memory.threatLevel === 1)) {
                 if(!creep.spawning) {
                     if(creep.memory.role == 'miner') {
                         roleMiner.run(creep);
@@ -84,6 +93,8 @@ module.exports.loop = function () {
                         roleDrainer.run(creep);
                     } else if(creep.memory.role == 'tank') {
                         roleTank.run(creep);
+                    } else if(creep.memory.role == 'raider') {
+                        roleRaider.run(creep);
                     }
                 }
             } else {
