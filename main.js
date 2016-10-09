@@ -9,6 +9,7 @@ var spawnManager = require('manager.spawn');
 var roleDefender = require('role.defender');
 var tower = require('tower');
 var link = require('link');
+var terminal = require('terminal');
 var roleLinkFiller = require('role.linkFiller');
 var roleAttacker = require('role.attacker');
 var roleClaimer = require('role.claimer');
@@ -20,7 +21,7 @@ var roleKeeper = require('role.peaceKeeper');
 var roleRemoteMiner = require('role.remoteMiner');
 var roleRemoteCollector = require('role.remoteCollector');
 
-//profiler.enable();
+profiler.enable();
 
 module.exports.loop = function () {
     
@@ -144,6 +145,14 @@ module.exports.loop = function () {
         if(towers.length > 0) {
             for(let l of links) {
                 link.run(l);
+            }
+        }
+        
+        var terminals = _.filter(Game.structures, (s) => s.structureType === STRUCTURE_TERMINAL);
+        if(terminals.length > 0) {
+            var boosted = Game.flags['Boost'];
+            for(let tm of terminals) {
+                terminal.run(tm, boosted);
             }
         }
         // determining the number and type of creeps needed

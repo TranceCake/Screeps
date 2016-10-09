@@ -22,9 +22,13 @@ var roleUpgrader = {
         creep.memory.result = result;
 	},
     
-    getBody: function (energy) {
+    getBody: function (energy, rcl) {
         if (energy < BODYPART_COST[MOVE] + BODYPART_COST[CARRY] + BODYPART_COST[WORK]) {
             return null;
+        }
+        
+        if(rcl === 8) {
+            return [WORK,CARRY,MOVE];
         }
         
         var work = [], carry = [], move = [];
@@ -59,7 +63,7 @@ var roleUpgrader = {
     
     moveToTarget: function(creep) {
         if(creep.upgradeController(creep.room.controller) === ERR_NOT_IN_RANGE) {
-            var flag = _.filter(Game.flags, f => f.name === creep.memory.flag)[0];
+            var flag = Game.flags[creep.memory.flag];
             
             if(flag !== undefined) {
                 return creep.moveTo(flag);

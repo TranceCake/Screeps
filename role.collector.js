@@ -3,9 +3,12 @@ var roleCollector = {
     /** @param {Creep} creep **/
     run: function(creep) {
         var result;
+        
+        // prevent creep from doing nothing
         if(creep.memory.path === undefined || Game.getObjectById(creep.memory.target) === null)
             result = this.findTarget(creep);
-        
+           
+        // switch creep states and find new target
         if(creep.memory.working && creep.carry.energy == 0) {
             creep.memory.working = false;
             result = this.findTarget(creep);
@@ -14,6 +17,7 @@ var roleCollector = {
             result = this.findTarget(creep);
         }
         
+        // retrieve target object from its id in memory and decide what to do
         var target = Game.getObjectById(creep.memory.target);
         if(!!target && target !== undefined) {
             if(!creep.pos.isNearTo(target)) {
@@ -28,6 +32,7 @@ var roleCollector = {
         creep.memory.result = result;
 	},
 	
+	// calculates body size and composition based on available energy
 	getBody: function (energy) {
         if (energy < BODYPART_COST[MOVE] + BODYPART_COST[CARRY]) {
             return null;
@@ -53,6 +58,7 @@ var roleCollector = {
         return energy - BODYPART_COST[part];
     },
     
+    // searches for a suitable target
     findTarget: function(creep) {
         var exclude = [];
         var creepsInRoom = _.filter(Game.creeps, c => c.room.name === creep.room.name);
@@ -126,7 +132,7 @@ var roleCollector = {
         } else {
             var targets = [];
             if(creep.room.memory.threatLevel === 0)
-                targets = _.filter(creep.room.find(FIND_DROPPED_ENERGY), e => e.amount >= (creep.carryCapacity * 0.66) || e.amount >= creep.carryCapacity - _.sum(creep.carry) && e.resourceType === RESOURCE_ENERGY);
+                targets = _.filter(creep.room.find(FIND_DROPPED_ENERGY), e => e.amount >= (creep.carryCapacity * 0.3) || e.amount >= creep.carryCapacity - _.sum(creep.carry) && e.resourceType === RESOURCE_ENERGY);
             
             if(targets.length > 0) {
                 var target = targets[0];

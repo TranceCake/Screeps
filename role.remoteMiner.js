@@ -10,11 +10,11 @@ var remoteMiner = {
         if(marker !== undefined) {
             if(marker.room !== undefined && marker.room.name === creep.room.name) {
                 var lair = Game.getObjectById(creep.memory.lairId);
-                if(!!lair && lair.ticksToSpawn < 5) {
-                    result = creep.moveTo(marker);
+                if(!!lair && lair.ticksToSpawn < 18) {
+                   result = creep.moveTo(marker);
                 } else {
                     var source = Game.getObjectById(creep.memory.sourceId);
-                    
+                  
                     result = creep.harvest(source);
                     if(result = ERR_NOT_IN_RANGE) {
                         result = creep.moveTo(source);

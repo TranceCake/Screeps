@@ -7,11 +7,14 @@ var remoteMiner = {
         if(marker !== undefined) {
             if(!creep.memory.working && creep.carry.energy === 0) {
                 if(creep.ticksToLive < 800) {
-                    if(!creep.pos.isNearTo(Game.spawns.Spawn8)) { 
-                        creep.moveTo(Game.spawns.Spawn8);
+                    var flag = Game.flags['RemoteSpawn-' + creep.memory.remote];
+                    var spawns = _.filter(Game.spawns, s => s.room.name === flag.room.name);
+                    var spawn = spawns[spawns.length - 1];
+                    if(!creep.pos.isNearTo(spawn)) { 
+                        creep.moveTo(spawn);
                         return;
                     } else {
-                        Game.spawns.Spawn8.renewCreep(creep);
+                        spawn.renewCreep(creep);
                         return;
                     }
                 } else {

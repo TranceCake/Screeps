@@ -2,24 +2,35 @@ var roleLinkFiller = {
     run: function(creep) {
         var result;
         var storage = creep.room.storage;
-        var link = _.filter(creep.room.find(FIND_MY_STRUCTURES), s => s.structureType === STRUCTURE_LINK && s.pos.isNearTo(storage));
+        var link = _.filter(creep.room.find(FIND_MY_STRUCTURES), s => s.structureType === STRUCTURE_LINK && s.pos.isNearTo(storage))[0];
+        var terminal = creep.room.terminal;
+        var flag = Game.flags[creep.room.name + '-D'];
+        var boosted = Game.flags['Boost'];
         
-        if(link.length > 0) {
-            if(!creep.pos.isNearTo(storage)) {
-                result = creep.moveTo(storage);
-            } else if(!creep.pos.isNearTo(link[0])) {
-                result = creep.moveTo(link[0]);
-            } else {
-                if((creep.carry.energy == 0 && storage.store[RESOURCE_ENERGY] > 15000) || (creep.carry.energy == 0 && creep.room.controller.ticksToDowngrade < 2500)) {
-                    result = creep.withdraw(storage, RESOURCE_ENERGY);
-                } else {
-                    result = creep.transfer(link[0], RESOURCE_ENERGY);
-                    //console.log(result)
-                }
-
-            }
+        if(!creep.pos.isEqualTo(flag)) {
+            creep.moveTo(flag);
         } else {
-            result = -10;
+            if(creep.carry.energy === 0 && (!!storage && !!storage.store && storage.store[RESOURCE_ENERGY] > 800)) {
+                creep.withdraw(storage, RESOURCE_ENERGY, 800);
+            } else if(creep.carry.energy === 0 && !(!!storage && !!storage.store && storage.store[RESOURCE_ENERGY] > 800)) {
+                return;
+            } else if(creep.ticksToLive <= 1) {
+                creep.transfer(storage, RESOURCE_ENERGY, 800);
+            }
+            
+            if(!!storage && !!storage.store && link.energy === 0 && (storage.store[RESOURCE_ENERGY] > 15800 || (creep.room.controller.ticksToDowngrade < 2500 && storage.store[RESOURCE_ENERGY] > 800))) {
+                //console.log('fill link ' + creep.room.name)
+                creep.withdraw(storage, RESOURCE_ENERGY, 800);
+                creep.transfer(link, RESOURCE_ENERGY, 800);
+            } else if(!!storage && storage.store && !!terminal && storage.store[RESOURCE_ENERGY] > 200800) {
+                //console.log('fill terminal ' + creep.room.name)
+                creep.withdraw(storage, RESOURCE_ENERGY, 800);
+                creep.transfer(terminal, RESOURCE_ENERGY, 800);
+            } else if(creep.room.name === boosted.room.name && !!storage && (!!terminal && !!terminal.store && terminal.store[RESOURCE_ENERGY] >= 800)) {
+                //console.log('fill storage ' + creep.room.name)
+                creep.withdraw(terminal, RESOURCE_ENERGY, 800);
+                creep.transfer(storage, RESOURCE_ENERGY, 800);
+            }
         }
         creep.memory.result = result;
     }

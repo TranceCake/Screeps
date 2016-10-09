@@ -106,7 +106,7 @@ var spawnManager = {
         }
         
         if((upgraders.length < minUpgraders || (minUpgraders === 1 && upgraders.length === 1 && upgraders[0].ticksToLive < 150)) && spawn.room.memory.threatLevel === 0)
-            return this.spawnCreep(spawn, roleUpgrader.getBody(available), 'upgrader', { flag: spawn.room.name + '-Upgrade' });
+            return this.spawnCreep(spawn, roleUpgrader.getBody(available, spawn.room.controller.level), 'upgrader', { flag: spawn.room.name + '-Upgrade' });
         
         //===== LINKFILLERS
         var links = _.filter(spawn.room.find(FIND_MY_STRUCTURES), s => s.structureType === STRUCTURE_LINK);
@@ -116,7 +116,7 @@ var spawnManager = {
             var minLinkFillers = 1;
             
             if(linkFillers.length < minLinkFillers  && spawn.room.memory.threatLevel === 0)
-                return this.spawnCreep(spawn, [CARRY, CARRY, CARRY, MOVE], 'linkFiller');
+                return this.spawnCreep(spawn, [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE], 'linkFiller');
         }
         
         //===== BUILDERS
