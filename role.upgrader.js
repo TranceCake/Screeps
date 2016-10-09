@@ -26,18 +26,18 @@ var roleUpgrader = {
         if (energy < BODYPART_COST[MOVE] + BODYPART_COST[CARRY] + BODYPART_COST[WORK]) {
             return null;
         }
-
+        
         var work = [], carry = [], move = [];
         var cost = _.sum([BODYPART_COST[MOVE], BODYPART_COST[CARRY], BODYPART_COST[WORK]]);
-
+        
         while (energy >= cost) {
-            if(carry.length < 2) {
+            if(carry.length < 3) {
                 energy = this.addPart(energy, carry, CARRY);
                 energy = this.addPart(energy, move, MOVE);
                 energy = this.addPart(energy, work, WORK);
-            } else if(move.length < 13) {
-                if(move.length === 2) {
-                    cost = _.sum([BODYPART_COST[MOVE], BODYPART_COST[WORK] * 2]);
+            } else if(work.length < 25) {
+                if(move.length === 3) {
+                    cost = _.sum([BODYPART_COST[MOVE], BODYPART_COST[WORK], BODYPART_COST[WORK]]);
                     if(cost > energy)
                         break;
                 }

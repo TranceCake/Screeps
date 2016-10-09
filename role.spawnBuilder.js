@@ -1,8 +1,11 @@
-var roleClaimer = {
+var roleSpawnBuilder = {
     /** @param {Creep} creep **/
     run: function(creep) {
         var marker = Game.flags['Spawn'];
         var result;
+        
+        if(creep.hits < creep.hitsMax)
+            creep.heal(creep);
         
         if(marker !== undefined) {
             if(marker.room !== undefined && marker.room.name === creep.room.name) {
@@ -48,4 +51,4 @@ var roleClaimer = {
     }
 };
 
-module.exports = roleClaimer;
+module.exports = roleSpawnBuilder;

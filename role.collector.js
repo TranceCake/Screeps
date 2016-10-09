@@ -108,7 +108,7 @@ var roleCollector = {
                     var target = creep.pos.findClosestByPath(towers);
                 } else {
                     var priorityStorages = _.filter(creep.room.find(FIND_MY_STRUCTURES), (s) => exclude.indexOf(s.id) < 0 && s.structureType === STRUCTURE_SPAWN || s.structureType === STRUCTURE_EXTENSION);
-                
+                    
                     if(priorityStorages.length > 0) {
                         var target = creep.pos.findClosestByPath(priorityStorages);
                     }
@@ -140,6 +140,7 @@ var roleCollector = {
                     }
                 }
             } else {
+                var priorityStorages = _.filter(creep.room.find(FIND_MY_STRUCTURES), (s) => (s.structureType === STRUCTURE_SPAWN || s.structureType === STRUCTURE_EXTENSION) && s.energy < s.energyCapacity);
                 targets = _.filter(creep.room.find(FIND_STRUCTURES), s => s.structureType === STRUCTURE_CONTAINER && s.store[RESOURCE_ENERGY] > 100);
                 
                 if(targets.length > 0) {
@@ -153,9 +154,10 @@ var roleCollector = {
                             targetValue = value;
                         }
                     }
-                } else if(creep.room.memory.threatLevel === 1) {
-                    if(!(creep.room.storage === undefined || creep.room.storage.store === undefined) && creep.room.storage.store[RESOURCE_ENERGY] > 0)
-                        var target = creep.room.storage;
+                } else if(!(creep.room.storage === undefined || creep.room.storage.store === undefined) && (creep.room.storage.store[RESOURCE_ENERGY] > 16000  && priorityStorages.length !== 0)) {
+                    var target = creep.room.storage;
+                } else if(creep.room.memory.threatLevel === 1 && (!(creep.room.storage === undefined || creep.room.storage.store === undefined) && creep.room.storage.store[RESOURCE_ENERGY] > 0)) {
+                    var target = creep.room.storage;
                 }
             }
             

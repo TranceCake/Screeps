@@ -4,6 +4,8 @@ var roleDefender = require('role.defender');
 var roleUpgrader = require('role.upgrader');
 var roleBuilder = require('role.builder');
 
+var remoteManager = require('manager.remoteMining');
+
 var spawnManager = {
 
     /** @param {Spawn} spawn **/
@@ -38,8 +40,15 @@ var spawnManager = {
         }
         
         //===== STARTUP/RECOVERY MINER
-        if(miners.length === 0)
-            return this.spawnCreep(spawn, roleMiner.getBody(available), 'miner', { sourceId: emptySources[0] });
+        if(miners.length === 0) {
+            var sourceContainer = _.filter(Game.getObjectById(emptySources[0]).room.find(FIND_STRUCTURES), s => s.structureType === STRUCTURE_CONTAINER && s.pos.isNearTo(Game.getObjectById(emptySources[0])))[0];
+            if(sourceContainer === undefined) {
+                var id = null;
+            } else {
+                var id = sourceContainer.id;
+            }
+            return this.spawnCreep(spawn, roleMiner.getBody(available), 'miner', { sourceId: emptySources[0], sourceContainer: id });
+        }
         
         //===== STARTUP/RECOVERY COLLECTOR
         var collectors = _.filter(creepsInRoom, creep => creep.memory.role === 'collector');
@@ -63,9 +72,21 @@ var spawnManager = {
         
         //===== MINERS
         if(emptySources.length > 0 && capacity < 550) {
-            return this.spawnCreep(spawn, roleMiner.getBody(available), 'miner', { sourceId: emptySources[0] });
+            var sourceContainer = _.filter(Game.getObjectById(emptySources[0]).room.find(FIND_STRUCTURES), s => s.structureType === STRUCTURE_CONTAINER && s.pos.isNearTo(Game.getObjectById(emptySources[0])))[0];
+            if(sourceContainer === undefined) {
+                var id = null;
+            } else {
+                var id = sourceContainer.id;
+            }
+            return this.spawnCreep(spawn, roleMiner.getBody(available), 'miner', { sourceId: emptySources[0], sourceContainer: id });
         } else if(emptySources.length > 0) {
-            return this.spawnCreep(spawn, roleMiner.getBody(550), 'miner', { sourceId: emptySources[0] });
+            var sourceContainer = _.filter(Game.getObjectById(emptySources[0]).room.find(FIND_STRUCTURES), s => s.structureType === STRUCTURE_CONTAINER && s.pos.isNearTo(Game.getObjectById(emptySources[0])))[0];
+            if(sourceContainer === undefined) {
+                var id = null;
+            } else {
+                var id = sourceContainer.id;
+            }
+            return this.spawnCreep(spawn, roleMiner.getBody(550), 'miner', { sourceId: emptySources[0], sourceContainer: id });
         }
         
         //===== COLLECTORS
@@ -74,9 +95,17 @@ var spawnManager = {
         
         //===== UPGRADERS
         var upgraders = _.filter(creepsInRoom, creep => creep.memory.role === 'upgrader');
-        var minUpgraders = Math.round((12/spawn.room.controller.level)+0.1);
+        var minUpgraders = 4;
         
-        if(upgraders.length < minUpgraders && spawn.room.memory.threatLevel === 0)
+        if(spawn.room.controller.level === 4) {
+            minUpgraders = 3;
+        } else if(spawn.room.controller.level < 7 && spawn.room.controller.level > 4) {
+            minUpgraders = 2;
+        } else if(spawn.room.controller.level >= 7) {
+            minUpgraders = 1;
+        }
+        
+        if((upgraders.length < minUpgraders || (minUpgraders === 1 && upgraders.length === 1 && upgraders[0].ticksToLive < 150)) && spawn.room.memory.threatLevel === 0)
             return this.spawnCreep(spawn, roleUpgrader.getBody(available), 'upgrader', { flag: spawn.room.name + '-Upgrade' });
         
         //===== LINKFILLERS
@@ -126,7 +155,7 @@ var spawnManager = {
             var minSpawnBuilders = 2;
             
             if(spawnBuilders.length < minSpawnBuilders && spawn.room.memory.threatLevel === 0)
-                return this.spawnCreep(spawn, [WORK, MOVE, WORK, MOVE, WORK, MOVE, WORK, MOVE, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE], 'spawnBuilder', { working: false });
+                return this.spawnCreep(spawn, [TOUGH, MOVE, TOUGH, MOVE, WORK, MOVE, WORK, MOVE, WORK, MOVE, WORK, MOVE, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, HEAL, MOVE, HEAL, MOVE], 'spawnBuilder', { working: false });
         }
         
         //===== DRAINERS
@@ -154,6 +183,51 @@ var spawnManager = {
             
             if(raiders.length < minRaiders)
                 return this.spawnCreep(spawn, [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY], 'raider', { working: true, waypoint: 1 });
+        }
+        
+        var remoteFlags = _.filter(Game.flags, f => f.name.includes("Remote-"));
+        
+        if(remoteFlags.length > 0) {
+            var number = remoteFlags[0].name.substr(remoteFlags[0].name.length - 1);
+            var flag = remoteFlags[0];
+            var remote = flag.room;
+            //var remote;
+            if(!!remote) {
+                var spawnType = remoteManager.run(remote, number);
+                switch(spawnType) {
+                    case 'keeper':
+                        return this.spawnCreep(spawn, [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, HEAL, HEAL, HEAL, HEAL, HEAL], 'peaceKeeper', { flag: flag.name });
+                        break;
+                        
+                    case 'miner':
+                        var miners = _.filter(Game.creeps, c => c.memory.role === 'remoteMiner' && c.memory.remote === number);
+                        var sources = remote.find(FIND_SOURCES);
+                        var minedSourceIds = [];
+                        var sourceId;
+                        var lairId;
+                        
+                        for(let miner of miners) {
+                            minedSourceIds.push(miner.memory.sourceId);
+                        }
+                        
+                        for(let source of sources) {
+                            if(minedSourceIds.indexOf(source.id) === -1) {
+                                sourceId = source.id;
+                                lairId = source.pos.findClosestByRange(source.room.find(FIND_HOSTILE_STRUCTURES)).id;
+                                break;
+                            }
+                        }
+                        
+                        return this.spawnCreep(spawn, [TOUGH, TOUGH, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, HEAL, HEAL], 'remoteMiner', { working: true, remote: number, sourceId: sourceId, lairId: lairId });
+                        break;
+                    
+                    case 'collector':
+                        return this.spawnCreep(spawn, [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, WORK, MOVE], 'remoteCollector', { working: true, remote: number });
+                        break;
+                }
+            } else {
+                //console.log('remote room #' + number + ' not visible..');
+            }
         }
         
         return 'nothing to spawn..';

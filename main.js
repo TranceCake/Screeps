@@ -16,8 +16,11 @@ var roleSpawnBuilder = require('role.spawnBuilder');
 var roleDrainer = require('role.drainer');
 var roleTank = require('role.tank');
 var roleRaider = require('role.raider');
+var roleKeeper = require('role.peaceKeeper');
+var roleRemoteMiner = require('role.remoteMiner');
+var roleRemoteCollector = require('role.remoteCollector');
 
-profiler.enable();
+//profiler.enable();
 
 module.exports.loop = function () {
     
@@ -28,7 +31,7 @@ module.exports.loop = function () {
                 room.memory.sources = {};
                 
                 var sources = room.find(FIND_SOURCES);
-            
+                
                 for(let source of sources) {
                     Object.assign(room.memory.sources, { [source.id]: {} } );
                 }
@@ -50,9 +53,11 @@ module.exports.loop = function () {
                                 'Amount: ' + hostiles.length, 0);
                 }
                 
-                log.warn('Hostile activity detected in: ' + room.name + '! \n' + 
-                                'Origin: ' + hostiles[0].owner.username + '\n' +
-                                'Amount: ' + hostiles.length, 0);
+                if(!hostiles[0].owner.username === 'Source Keeper') {
+                    log.warn('Hostile activity detected in: ' + room.name + '! \n' + 
+                             'Origin: ' + hostiles[0].owner.username + '\n' +
+                             'Amount: ' + hostiles.length, 0);
+                }
                 
             } else if(hostiles.length === 0 && room.memory.threatLevel === 1 || room.memory.threatLevel === undefined) {
                 room.memory.threatLevel = 0;
@@ -95,6 +100,12 @@ module.exports.loop = function () {
                         roleTank.run(creep);
                     } else if(creep.memory.role == 'raider') {
                         roleRaider.run(creep);
+                    } else if(creep.memory.role == 'peaceKeeper') {
+                        roleKeeper.run(creep);
+                    } else if(creep.memory.role == 'remoteMiner') {
+                        roleRemoteMiner.run(creep);
+                    } else if(creep.memory.role == 'remoteCollector') {
+                        roleRemoteCollector.run(creep);
                     }
                 }
             } else {
@@ -110,6 +121,12 @@ module.exports.loop = function () {
                     roleDrainer.run(creep);
                 } else if(creep.memory.role == 'tank') {
                     roleTank.run(creep);
+                } else if(creep.memory.role == 'peaceKeeper') {
+                    roleKeeper.run(creep);
+                } else if(creep.memory.role == 'remoteMiner') {
+                    roleRemoteMiner.run(creep);
+                } else if(creep.memory.role == 'remoteCollector') {
+                    roleRemoteCollector.run(creep);
                 }
             }
         }
