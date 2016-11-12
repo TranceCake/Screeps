@@ -1,8 +1,8 @@
 var remoteMiningManager = {
-    run: function(room, number) {
+    run: function(number) {
         
-        var peaceKeepers = _.filter(Game.creeps, c => c.memory.role === 'peaceKeeper' && c.memory.flag === 'Remote-' + number);
-        if(!peaceKeepers[0] || peaceKeepers[0].ticksToLive < 300 && peaceKeepers.length === 1) {
+        var peaceKeepers = _.filter(Game.creeps, c => c.memory.role === 'peaceKeeper' && c.memory.remote === number);
+        if(!peaceKeepers[0] || peaceKeepers.length < 2 || _.min(peaceKeepers, p => p.ticksToLive) < 300 && peaceKeepers.length === 2) {
             // add peaceKeeper to spawn queue
             return 'keeper';
         }
@@ -14,10 +14,18 @@ var remoteMiningManager = {
         }
         
         var collectors = _.filter(Game.creeps, c => c.memory.role === 'remoteCollector' && c.memory.remote === number);
-        if(collectors.length < 6) {
+        if(number === 1 && collectors.length < 6) {
+            // add remoteCollector to spawn queue
+            return 'collector';
+        } else if(number === 2 && collectors.length < 7) {
+            // add remoteCollector to spawn queue
+            return 'collector';
+        } else if(number === 3 && collectors.length < 7) {
             // add remoteCollector to spawn queue
             return 'collector';
         }
+        
+        return 'nothing';
     }
 };
 

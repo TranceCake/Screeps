@@ -22,11 +22,11 @@ var roleLinkFiller = {
                 //console.log('fill link ' + creep.room.name)
                 creep.withdraw(storage, RESOURCE_ENERGY, 800);
                 creep.transfer(link, RESOURCE_ENERGY, 800);
-            } else if(!!storage && storage.store && !!terminal && storage.store[RESOURCE_ENERGY] > 200800) {
+            } else if(!!storage && storage.store && !!terminal && storage.store[RESOURCE_ENERGY] > 400800) {
                 //console.log('fill terminal ' + creep.room.name)
                 creep.withdraw(storage, RESOURCE_ENERGY, 800);
                 creep.transfer(terminal, RESOURCE_ENERGY, 800);
-            } else if(creep.room.name === boosted.room.name && !!storage && (!!terminal && !!terminal.store && terminal.store[RESOURCE_ENERGY] >= 800)) {
+            } else if((!!terminal && !!terminal.store && terminal.store[RESOURCE_ENERGY] >= 800 && !!storage) && ((!!boosted && creep.room.name === boosted.room.name && !!storage) || (terminal.store[RESOURCE_ENERGY] > 10000))) {
                 //console.log('fill storage ' + creep.room.name)
                 creep.withdraw(terminal, RESOURCE_ENERGY, 800);
                 creep.transfer(storage, RESOURCE_ENERGY, 800);

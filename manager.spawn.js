@@ -131,6 +131,18 @@ var spawnManager = {
                 return this.spawnCreep(spawn, roleBuilder.getBody(available), 'builder', { idle: false });
         }
         
+        //===== MINERAL MINERS
+        var extractor = _.filter(localStructures, s => s.structureType === STRUCTURE_EXTRACTOR)[0];
+        if(!!spawn.room.storage && !!extractor) {
+            var mineralMiners = _.filter(creepsInRoom, c => c.memory.role === 'mineralMiner');
+            var minMineralMiners = 1;
+            var mineral = extractor.pos.lookFor(LOOK_MINERALS)[0];
+            
+            if(mineralMiners.length < minMineralMiners && mineral.mineralAmount > 0) {
+                return this.spawnCreep(spawn, [WORK, WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE], 'mineralMiner', { working: true, mineralId: mineral.id, mineralType: mineral.mineralType, spawnId: spawn.id });
+            }
+        }
+        
         //===== ATTACKERS
         if(Game.flags['Attack'] !== undefined) {
             var attackers = _.filter(Game.creeps, creep => creep.memory.role === 'attacker');
@@ -143,7 +155,7 @@ var spawnManager = {
         //===== CLAIMERS
         if(Game.flags['Claim'] !== undefined) {
             var claimers = _.filter(Game.creeps, creep => creep.memory.role === 'claimer');
-            var minClaimers = 1;
+            var minClaimers = 0;//1;
             
             if(claimers.length < minClaimers && spawn.room.memory.threatLevel === 0)
                 return this.spawnCreep(spawn, [TOUGH, MOVE, TOUGH, MOVE, CLAIM, MOVE], 'claimer');
@@ -155,8 +167,8 @@ var spawnManager = {
             var minSpawnBuilders = 2;
             
             if(spawnBuilders.length < minSpawnBuilders && spawn.room.memory.threatLevel === 0)
-                return this.spawnCreep(spawn, [TOUGH, MOVE, TOUGH, MOVE, WORK, MOVE, WORK, MOVE, WORK, MOVE, WORK, MOVE, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, HEAL, MOVE, HEAL, MOVE], 'spawnBuilder', { working: false });
-        }
+                return this.spawnCreep(spawn, [TOUGH, MOVE, TOUGH, MOVE, WORK, MOVE, WORK, MOVE, WORK, MOVE, WORK, MOVE, WORK, MOVE, WORK, MOVE, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, HEAL, MOVE, HEAL, MOVE], 'spawnBuilder', { working: false });
+         }
         
         //===== DRAINERS
         if(Game.flags['Drain'] !== undefined) {
@@ -188,45 +200,48 @@ var spawnManager = {
         var remoteFlags = _.filter(Game.flags, f => f.name.includes("Remote-"));
         
         if(remoteFlags.length > 0) {
-            var number = remoteFlags[0].name.substr(remoteFlags[0].name.length - 1);
-            var flag = remoteFlags[0];
-            var remote = flag.room;
-            //var remote;
-            if(!!remote) {
-                var spawnType = remoteManager.run(remote, number);
+            for(let flag of remoteFlags) {
+                var number = parseInt(flag.name.substr(flag.name.length - 1), 10);
+                var remote = flag.room;
+                var spawnType = remoteManager.run(number);
+                //console.log(spawnType)
                 switch(spawnType) {
                     case 'keeper':
-                        return this.spawnCreep(spawn, [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, HEAL, HEAL, HEAL, HEAL, HEAL], 'peaceKeeper', { flag: flag.name });
+                        return this.spawnCreep(spawn, [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, HEAL, HEAL, HEAL, HEAL, HEAL], 'peaceKeeper', { remote: number });
                         break;
                         
                     case 'miner':
                         var miners = _.filter(Game.creeps, c => c.memory.role === 'remoteMiner' && c.memory.remote === number);
-                        var sources = remote.find(FIND_SOURCES);
-                        var minedSourceIds = [];
-                        var sourceId;
-                        var lairId;
-                        
-                        for(let miner of miners) {
-                            minedSourceIds.push(miner.memory.sourceId);
-                        }
-                        
-                        for(let source of sources) {
-                            if(minedSourceIds.indexOf(source.id) === -1) {
-                                sourceId = source.id;
-                                lairId = source.pos.findClosestByRange(source.room.find(FIND_HOSTILE_STRUCTURES)).id;
-                                break;
+                        if(!! remote) {
+                            var sources = remote.find(FIND_SOURCES);
+                            
+                            var minedSourceIds = [];
+                            var sourceId;
+                            var lairId;
+                            
+                            for(let miner of miners) {
+                                minedSourceIds.push(miner.memory.sourceId);
                             }
+                            
+                            for(let source of sources) {
+                                if(minedSourceIds.indexOf(source.id) === -1) {
+                                    sourceId = source.id;
+                                    lairId = source.pos.findClosestByRange(source.room.find(FIND_HOSTILE_STRUCTURES)).id;
+                                    break;
+                                }
+                            }
+                            
+                            return this.spawnCreep(spawn, [TOUGH, TOUGH, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, HEAL, HEAL], 'remoteMiner', { working: true, remote: number, sourceId: sourceId, lairId: lairId });
                         }
-                        
-                        return this.spawnCreep(spawn, [TOUGH, TOUGH, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, HEAL, HEAL], 'remoteMiner', { working: true, remote: number, sourceId: sourceId, lairId: lairId });
                         break;
                     
                     case 'collector':
                         return this.spawnCreep(spawn, [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, WORK, MOVE], 'remoteCollector', { working: true, remote: number });
                         break;
+                        
+                    case 'nothing':
+                        break;
                 }
-            } else {
-                //console.log('remote room #' + number + ' not visible..');
             }
         }
         

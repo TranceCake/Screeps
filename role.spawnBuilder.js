@@ -33,13 +33,25 @@ var roleSpawnBuilder = {
         if(creep.memory.working) {
             var site = creep.pos.findClosestByPath(FIND_CONSTRUCTION_SITES);
             
-            if(creep.build(site) === ERR_NOT_IN_RANGE) {
-                result = creep.moveTo(site);
+            if(!!site) {
+                if(creep.build(site) === ERR_NOT_IN_RANGE) {
+                    result = creep.moveTo(site);
+                } else {
+                    result = creep.build(site);
+                }
             } else {
-                result = creep.build(site);
+                var containers = _.filter(creep.room.find(FIND_STRUCTURES), s => s.structureType === STRUCTURE_CONTAINER && s.store[RESOURCE_ENERGY] < s.store.capacity);
+                var container = creep.pos.findClosestByPath(containers);
+                if(!!container) {
+                    if(creep.transfer(container, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
+                        result = creep.moveTo(container);
+                    } else {
+                        result = creep.transfer(container, RESOURCE_ENERGY);
+                    }
+                }
             }
         } else {
-            var source = creep.pos.findClosestByPath(creep.room.find(FIND_SOURCES));
+            var source = creep.pos.findClosestByPath(_.filter(creep.room.find(FIND_SOURCES), s => s.energy > 0));
             
             if(!creep.pos.isNearTo(source)) {
                 result = creep.moveTo(source);

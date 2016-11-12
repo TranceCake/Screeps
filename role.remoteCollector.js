@@ -2,7 +2,7 @@ var remoteMiner = {
     /** @param {Creep} creep **/
     run: function(creep) {
         var result;
-        var marker = Game.flags['Collect'];
+        var marker = Game.flags['Remote-' + creep.memory.remote];
         
         if(marker !== undefined) {
             if(!creep.memory.working && creep.carry.energy === 0) {
@@ -67,7 +67,7 @@ var remoteMiner = {
                     result = creep.moveTo(marker);
                 }
             } else {
-                var home = _.filter(Game.spawns, s => Game.flags['RemoteSpawn-1'] && s.room.name === Game.flags['RemoteSpawn-1'].room.name)[0];
+                var home = _.filter(Game.spawns, s => Game.flags['RemoteSpawn-' + creep.memory.remote] && s.room.name === Game.flags['RemoteSpawn-' + creep.memory.remote].room.name)[0];
                 
                 if(home === undefined)
                     home = Game.spawns.Spawn4;

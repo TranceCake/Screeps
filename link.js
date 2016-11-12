@@ -5,10 +5,9 @@ var link = {
         if(storage !== undefined && link.cooldown === 0) {
             if(link.pos.isNearTo(storage)) {
                 var receiver = _.filter(link.room.find(FIND_MY_STRUCTURES), s => s.structureType === STRUCTURE_LINK && s.id !== link.id);
-                var amount = receiver[0].energy;
                 
-                if(receiver.length > 0 && amount === 0) {
-                    link.transferEnergy(receiver[0], 800);
+                if(receiver.length > 0 && receiver[0].energy === 0) {
+                    result = link.transferEnergy(receiver[0], link.energy);
                 }
             }
         }

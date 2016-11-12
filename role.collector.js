@@ -9,10 +9,10 @@ var roleCollector = {
             result = this.findTarget(creep);
            
         // switch creep states and find new target
-        if(creep.memory.working && creep.carry.energy == 0) {
+        if(creep.memory.working && _.sum(creep.carry) === 0) {
             creep.memory.working = false;
             result = this.findTarget(creep);
-        } else if(!creep.memory.working && creep.carry.energy === creep.carryCapacity) {
+        } else if(!creep.memory.working && _.sum(creep.carry) === creep.carryCapacity) {
             creep.memory.working = true;
             result = this.findTarget(creep);
         }
@@ -211,14 +211,26 @@ var roleCollector = {
     work: function(target, creep) {
         var result;
         if(creep.memory.working) {
-            result = creep.transfer(target, RESOURCE_ENERGY);
+            if(target.structureType === STRUCTURE_STORAGE) {
+                var resource;
+                for(let r in creep.carry) {
+                    if(creep.carry[r] > 0) {
+                        resource = r;
+                        break;
+                    }
+                }
+                result = creep.transfer(target, resource, creep.carry[resource]);
+            } else {
+                result = creep.transfer(target, RESOURCE_ENERGY);
+            }
+            
             creep.memory.target = null;
             
             return result;
         } else {
             if(target.store !== undefined) {
-                if(target.store[RESOURCE_ENERGY] > creep.carryCapacity - creep.carry.energy) {
-                    result = creep.withdraw(target, RESOURCE_ENERGY, creep.carryCapacity - creep.carry.energy);
+                if(target.store[RESOURCE_ENERGY] > creep.carryCapacity - _.sum(creep.carry)) {
+                    result = creep.withdraw(target, RESOURCE_ENERGY, creep.carryCapacity - _.sum(creep.carry));
                 } else {
                     result = creep.withdraw(target, RESOURCE_ENERGY, target.store[RESOURCE_ENERGY]);
                 }

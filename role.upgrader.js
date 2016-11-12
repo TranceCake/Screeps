@@ -27,10 +27,6 @@ var roleUpgrader = {
             return null;
         }
         
-        if(rcl === 8) {
-            return [WORK,CARRY,MOVE];
-        }
-        
         var work = [], carry = [], move = [];
         var cost = _.sum([BODYPART_COST[MOVE], BODYPART_COST[CARRY], BODYPART_COST[WORK]]);
         
