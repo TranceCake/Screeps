@@ -11,7 +11,11 @@ var roleClaimer = {
                 if(creep.claimController(controller) === ERR_NOT_IN_RANGE) {
                     result = creep.moveTo(controller);
                 } else {
-                    result = creep.claimController(controller);
+                    if(controller.owner === null) {
+                        result = creep.claimController(controller);
+                    } else {
+                        result = creep.attackController(controller);
+                    }
                 }
             } else {
                 result = creep.moveTo(marker);

@@ -29,6 +29,10 @@ class Log
 		this.toConsole(msg, 'green');
 	}
 	
+	static transferInfo(msg) {
+	    this.toConsole(msg, 'khaki');
+	}
+	
 	/**
 	 * HTML table in console
 	 * ex: Log.table(['a','b'], [[1,2],[3,4]])

@@ -9,24 +9,28 @@ var roleCollector = {
             result = this.findTarget(creep);
            
         // switch creep states and find new target
-        if(creep.memory.working && _.sum(creep.carry) === 0) {
+        if(creep.memory.working !== undefined) {
+            if(creep.memory.working && _.sum(creep.carry) === 0) {
+                creep.memory.working = false;
+                result = this.findTarget(creep);
+            } else if(!creep.memory.working && _.sum(creep.carry) === creep.carryCapacity) {
+                creep.memory.working = true;
+                result = this.findTarget(creep);
+            }
+        } else {
             creep.memory.working = false;
-            result = this.findTarget(creep);
-        } else if(!creep.memory.working && _.sum(creep.carry) === creep.carryCapacity) {
-            creep.memory.working = true;
-            result = this.findTarget(creep);
         }
         
         // retrieve target object from its id in memory and decide what to do
         var target = Game.getObjectById(creep.memory.target);
-        if(!!target && target !== undefined) {
-            if(!creep.pos.isNearTo(target)) {
-                result = this.moveTo(creep);
-            } else {
-                result = this.work(target, creep);
-            }
-        } else {
+        if(!target || target !== undefined) {
             result = this.findTarget(creep);
+        }
+
+        if(!creep.pos.isNearTo(target)) {
+            result = this.moveTo(creep);
+        } else {
+            result = this.work(target, creep);
         }
         
         creep.memory.result = result;
@@ -132,14 +136,26 @@ var roleCollector = {
         } else {
             var targets = [];
             if(creep.room.memory.threatLevel === 0)
-                targets = _.filter(creep.room.find(FIND_DROPPED_ENERGY), e => e.amount >= (creep.carryCapacity * 0.3) || e.amount >= creep.carryCapacity - _.sum(creep.carry) && e.resourceType === RESOURCE_ENERGY);
+                targets = _.filter(creep.room.find(FIND_DROPPED_RESOURCES), e => e.amount >= (creep.carryCapacity * 0.3) || e.amount >= creep.carryCapacity - _.sum(creep.carry) && e.resourceType === RESOURCE_ENERGY);
+                priorityTargets = _.filter(creep.room.find(FIND_TOMBSTONES), t => t.store >= (creep.carryCapacity * 0.3) || t.store >= creep.carryCapacity - _.sum(creep.carry));
             
-            if(targets.length > 0) {
-                var target = targets[0];
-                var targetValue = target.amount / creep.pos.findPathTo(target).length;
+            if(priorityTargets.length > 0) {
+                var target = priorityTargets[0];
+                var ttl = target.ticksToDecay;
                 
                 for(let t of targets) {
-                    var value = t.amount / creep.pos.findPathTo(t).length;
+                    var value = t.ticksToDecay;
+                    if(value > ttl) {
+                        target = t;
+                        ttl = value;
+                    }
+                }
+            } else if(targets.length > 0) {
+                var target = targets[0];
+                var targetValue = target.amount / (creep.pos.findPathTo(target).length * 2);
+                
+                for(let t of targets) {
+                    var value = t.amount / (creep.pos.findPathTo(t).length * 2);
                     if(value > targetValue) {
                         target = t;
                         targetValue = value;

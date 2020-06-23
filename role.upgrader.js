@@ -68,6 +68,7 @@ var roleUpgrader = {
             }
         } else {
             return creep.upgradeController(creep.room.controller);
+            
         }
     }
 };

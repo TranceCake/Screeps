@@ -8,10 +8,10 @@ var remoteMiner = {
             if(!creep.memory.working && creep.carry.energy === 0) {
                 if(creep.ticksToLive < 800) {
                     var flag = Game.flags['RemoteSpawn-' + creep.memory.remote];
-                    var spawns = _.filter(Game.spawns, s => s.room.name === flag.room.name);
+                    var spawns = _.filter(Game.spawns, s => s.room.name === flag.room.name && s.spawning === null);
                     var spawn = spawns[spawns.length - 1];
                     if(!creep.pos.isNearTo(spawn)) { 
-                        creep.moveTo(spawn);
+                        creep.moveTo(spawn, {reusePath:10});
                         return;
                     } else {
                         spawn.renewCreep(creep);
@@ -57,14 +57,14 @@ var remoteMiner = {
                             }
                             
                             if(result === ERR_NOT_IN_RANGE) {
-                                result = creep.moveTo(target);
+                                result = creep.moveTo(target, {reusePath:10});
                             } else {
                                 creep.repair(target);
                             }
                         }
                     }
                 } else {
-                    result = creep.moveTo(marker);
+                    result = creep.moveTo(marker, {reusePath:20});
                 }
             } else {
                 var home = _.filter(Game.spawns, s => Game.flags['RemoteSpawn-' + creep.memory.remote] && s.room.name === Game.flags['RemoteSpawn-' + creep.memory.remote].room.name)[0];
@@ -77,11 +77,11 @@ var remoteMiner = {
                   
                     if(storage !== undefined) {
                         if(creep.transfer(storage, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
-                            result = creep.moveTo(storage);
+                            result = creep.moveTo(storage, {reusePath:10});
                         }
                     }
                 } else {
-                    result = creep.moveTo(home);
+                    result = creep.moveTo(home, {reusePath:20});
                 }
             }
         }

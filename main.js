@@ -6,6 +6,7 @@ var roleCollector = require('role.collector');
 var roleBuilder = require('role.builder');
 var roleUpgrader = require('role.upgrader');
 var spawnManager = require('manager.spawn');
+var logisticsManager = require('manager.logistics');
 var roleDefender = require('role.defender');
 var tower = require('tower');
 var link = require('link');
@@ -13,7 +14,7 @@ var terminal = require('terminal');
 var roleLinkFiller = require('role.linkFiller');
 var roleAttacker = require('role.attacker');
 var roleClaimer = require('role.claimer');
-var roleSpawnBuilder = require('role.spawnBuilder');
+var roleRemoteBuilder = require('role.remoteBuilder');
 var roleDrainer = require('role.drainer');
 var roleTank = require('role.tank');
 var roleRaider = require('role.raider');
@@ -22,17 +23,18 @@ var roleRemoteMiner = require('role.remoteMiner');
 var roleRemoteCollector = require('role.remoteCollector');
 var roleMineralMiner = require('role.MineralMiner');
 
-//profiler.enable();
+// profiler.enable();
 
 module.exports.loop = function () {
     
     profiler.wrap(function() {
-        
+
         _.forEach(Game.rooms, room => {
             if(_.isUndefined(room.memory.sources)) {
                 room.memory.sources = {};
                 
                 var sources = room.find(FIND_SOURCES);
+                console.log(sources)
                 
                 for(let source of sources) {
                     Object.assign(room.memory.sources, { [source.id]: {} } );
@@ -46,10 +48,10 @@ module.exports.loop = function () {
                 });
             }
 
-            var hostiles = _.filter(room.find(FIND_HOSTILE_CREEPS), c => c.owner.username !== 'Mordox');
+            var hostiles = _.filter(room.find(FIND_HOSTILE_CREEPS), c => c.owner.username !== 'Mordox' && (c.getActiveBodyparts(ATTACK).length > 0 || c.getActiveBodyparts(RANGED_ATTACK).length > 0 || c.getActiveBodyparts(HEAL).length > 0));
             if(hostiles.length > 0 && room.memory.threatLevel === 0) {
                 room.memory.threatLevel = 1;
-                if(!(hostiles[0].owner.username === 'Invader' || hostiles[0].owner.username === 'Source Keeper' || hostiles[0].owner.username === 'Remco' || hostiles[0].owner.username === 'Mordox')) {
+                if(!(hostiles[0].owner.username === 'Invader' || hostiles[0].owner.username === 'Source Keeper' || hostiles[0].owner.username === 'Remco' || hostiles[0].owner.username === 'Mordox' || hostiles[0].owner.username === '0xDEADFEED' || hostiles[0].owner.username === 'Nisou' || hostiles[0].owner.username === 'kormac' || hostiles[0].owner.username === 'Enrico')) {
                     Game.notify('Hostile activity detected in: ' + room.name + '! \n' + 
                                 'Origin: ' + hostiles[0].owner.username + '\n' +
                                 'Amount: ' + hostiles.length, 0);
@@ -64,6 +66,8 @@ module.exports.loop = function () {
             } else if(hostiles.length === 0 && room.memory.threatLevel === 1 || room.memory.threatLevel === undefined) {
                 room.memory.threatLevel = 0;
             }
+
+            logisticsManager.getRoomSupply(room);
             
         });
         
@@ -94,8 +98,8 @@ module.exports.loop = function () {
                         roleAttacker.run(creep);
                     } else if(creep.memory.role == 'claimer') {
                         roleClaimer.run(creep);
-                    } else if(creep.memory.role == 'spawnBuilder') {
-                        roleSpawnBuilder.run(creep);
+                    } else if(creep.memory.role == 'remoteBuilder') {
+                        roleRemoteBuilder.run(creep);
                     } else if(creep.memory.role == 'drainer') {
                         roleDrainer.run(creep);
                     } else if(creep.memory.role == 'tank') {
@@ -135,6 +139,10 @@ module.exports.loop = function () {
                     roleRemoteCollector.run(creep);
                 } else if(creep.memory.role == 'mineralMiner') {
                     roleMineralMiner.run(creep);
+                } else if(creep.memory.role == 'spawnBuilder') {
+                    roleSpawnBuilder.run(creep);
+                } else if(creep.memory.role == 'upgrader') {
+                    roleUpgrader.run(creep);
                 }
             }
         }
@@ -151,7 +159,7 @@ module.exports.loop = function () {
             }
         }
         
-        // executing jobs for all towers
+        // executing jobs for all links
         var links = _.filter(Game.structures, (s) => s.structureType === STRUCTURE_LINK);
         if(towers.length > 0) {
             for(let l of links) {

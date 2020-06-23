@@ -3,12 +3,12 @@ var roleBuilder = {
     /** @param {Creep} creep **/
     run: function(creep) {
         var result;
+        var sites = creep.room.find(FIND_CONSTRUCTION_SITES);
         
-        if(creep.carry.energy > 0) {
+        if(sites.length > 0) {
             var site;
-            var sites = creep.room.find(FIND_CONSTRUCTION_SITES);
             var prioritySites = _.filter(sites, (s) => s.structureType === STRUCTURE_RAMPART || s.structureType === STRUCTURE_WALL);
-            var topPrioritySites = _.filter(sites, (s) => s.structureType === STRUCTURE_EXTENSION || s.structureType === STRUCTURE_TOWER);
+            var topPrioritySites = _.filter(sites, (s) => s.structureType === STRUCTURE_EXTENSION || s.structureType === STRUCTURE_TOWER || s.structureType === STRUCTURE_SPAWN);
             
             if(topPrioritySites.length > 0) {
                 creep.memory.idle = false;
@@ -24,19 +24,11 @@ var roleBuilder = {
                 result = work(creep, site);
             } else {
                 creep.memory.idle = true;
-                var flags = _.filter(Game.flags, f => f.room !== undefined && f.room.name === creep.room.name);
-                var flagName = creep.room.name + '-Idle';
-                
-                if(flags.length > 0) {
-                    var flag = _.filter(flags, f => f.name === flagName)[0];
-                    
-                    if(!creep.pos.isNearTo(flag)) {
-                        result = creep.moveTo(flag);
-                    }
-                }
+                goToIdle(creep);
             }
         } else {
-            result = -6;   
+            goToIdle(creep);
+            result = -6;
         }
         creep.memory.result = result;
 	},
@@ -74,6 +66,19 @@ function work(creep, target) {
         return creep.moveTo(target);
     } else {
         return creep.build(target);
+    }
+}
+
+function goToIdle(creep) {
+    var flags = _.filter(Game.flags, f => f.room !== undefined && f.room.name === creep.room.name);
+    var flagName = creep.room.name + '-Idle';
+    
+    if(flags.length > 0) {
+        var flag = _.filter(flags, f => f.name === flagName)[0];
+        
+        if(!creep.pos.isNearTo(flag)) {
+            result = creep.moveTo(flag);
+        }
     }
 }
 

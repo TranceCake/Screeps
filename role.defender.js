@@ -36,14 +36,10 @@ var roleDefender = {
                     var target = creep.pos.findClosestByPath(hostileStructures);
                     result = defend(creep, target);
                 } else {
-                    var flags = _.filter(Game.flags, f => f.room !== undefined && f.room.name === creep.room.name);
-                    var flagName = creep.room.name + '-Idle';
-                    
-                    if(flags.length > 0) {
-                        var flag = _.filter(flags, f => f.name === flagName)[0];
-                        
-                        if(!creep.pos.isNearTo(flag)) {
-                            result = creep.moveTo(flag);
+                    let idle = Game.flags[creep.room.name + '-Idle'];
+                    if(!! idle) {
+                        if(!creep.pos.isNearTo(idle)) {
+                            creep.moveTo(idle);
                         }
                     }
                 }
@@ -57,11 +53,12 @@ var roleDefender = {
             return null;
         }
 
-        var attack = [], move = [];
-        var cost = BODYPART_COST[MOVE] + BODYPART_COST[ATTACK];
+        var tough = [], attack = [], move = [];
+        var cost = BODYPART_COST[TOUGH] + BODYPART_COST[MOVE] + BODYPART_COST[ATTACK];
 
         while (energy >= cost) {
             if (attack.length < 5) {
+                energy = this.addPart(energy, tough, TOUGH);
                 energy = this.addPart(energy, move, MOVE);
                 energy = this.addPart(energy, attack, ATTACK);
             } else {
@@ -69,7 +66,7 @@ var roleDefender = {
             }
         }
 
-        return move.concat(attack);
+        return tough.concat(move.concat(attack));
     },
     
     addPart: function (energy, parts, part) {

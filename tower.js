@@ -1,7 +1,7 @@
 var tower = {
     run: function(tower) {
         var hostileAttackCreeps = tower.room.find(FIND_HOSTILE_CREEPS, { 
-            filter: (c) => (c.getActiveBodyparts(ATTACK) > 0 || c.getActiveBodyparts(RANGED_ATTACK) > 0) && c.owner.username !== 'Remco'
+            filter: (c) => (c.getActiveBodyparts(ATTACK) > 0 || c.getActiveBodyparts(RANGED_ATTACK) > 0) && !(c.owner.username === 'Remco' || c.owner.username === 'Mordox' || c.owner.username === '0xDEADFEED' || c.owner.username === 'Nisou' || c.owner.username === 'kormac' || c.owner.username === 'Enrico')
         });
         var targets = this.getTargets(hostileAttackCreeps, tower , 4);
         var healers = _.filter(tower.room.find(FIND_HOSTILE_CREEPS), c => c.getActiveBodyparts(HEAL) > 0);
@@ -21,7 +21,7 @@ var tower = {
             var target = tower.pos.findClosestByRange(targets);
             tower.attack(target);
         } else {
-            var hostileCreeps = _.filter(tower.room.find(FIND_HOSTILE_CREEPS), c => c.owner.username !== 'Remco' && !(c.getActiveBodyparts(ATTACK) > 0 || c.getActiveBodyparts(RANGED_ATTACK) > 0));
+            var hostileCreeps = _.filter(tower.room.find(FIND_HOSTILE_CREEPS), c => !(c.owner.username === 'Remco' || c.owner.username === 'Mordox' || c.owner.username === '0xDEADFEED' || c.owner.username === 'Nisou' || c.owner.username === 'kormac' || c.owner.username === 'Enrico') && !(c.getActiveBodyparts(ATTACK) > 0 || c.getActiveBodyparts(RANGED_ATTACK) > 0));
             var targets = this.getTargets(hostileCreeps, tower, 4);
             
             if(targets.length > 0) {
@@ -60,13 +60,16 @@ var tower = {
                         var maxHits;
                         
                         if(rampart == undefined) {
-                            maxHits = 250000;
+                            // maxHits = 250000;
+                            maxHits = 60000;
                         } else {
                             maxHits = rampart.hitsMax;
                         }
                         
-                        if(maxHits > tower.room.controller.level * 250000)
-                            maxHits = tower.room.controller.level * 250000;
+                        // if(maxHits > tower.room.controller.level * 250000)
+                        //     maxHits = tower.room.controller.level * 250000;
+                        if(maxHits > tower.room.controller.level * 60000)
+                            maxHits = tower.room.controller.level * 60000;
                         
                         var damagedStructures = tower.room.find(FIND_STRUCTURES, {
                             filter: (s) => (s.structureType === STRUCTURE_RAMPART && s.hits < maxHits) 
